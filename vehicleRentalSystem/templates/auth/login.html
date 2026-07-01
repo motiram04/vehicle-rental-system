@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Vehicle Rental System</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="static/css/style.css">
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-5">
+
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid md:grid-cols-2">
+
+        <!-- Left Side -->
+        <div class="hidden md:flex flex-col justify-center items-center bg-blue-700 text-white p-10">
+
+            <i class="fa-solid fa-car-side text-7xl mb-6"></i>
+
+            <h1 class="text-4xl font-bold mb-4">
+                Vehicle Rental System
+            </h1>
+
+            <p class="text-center text-blue-100 leading-7">
+                Rent vehicles quickly, safely and securely.
+                Login to manage your bookings,
+                payments and vehicles.
+            </p>
+
+        </div>
+
+        <!-- Right Side -->
+        <div class="p-10">
+
+            <div class="text-center mb-8">
+
+                <h2 class="text-3xl font-bold text-gray-800">
+                    Welcome Back
+                </h2>
+
+                <p class="text-gray-500 mt-2">
+                    Login to your account
+                </p>
+
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category,message in messages %}
+                        <div class="mb-4 rounded-lg p-3 text-white
+                        {% if category=='success' %}
+                            bg-green-500
+                        {% else %}
+                            bg-red-500
+                        {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/login" method="POST" class="space-y-5">
+
+                <!-- Email -->
+                <div>
+
+                    <label class="block mb-2 font-semibold">
+                        Email
+                    </label>
+
+                    <div class="relative">
+
+                        <i class="fa-solid fa-envelope absolute left-4 top-4 text-gray-400"></i>
+
+                        <input
+                            type="email"
+                            name="email"
+                            required
+                            placeholder="Enter your email"
+                            class="w-full border rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-500 outline-none">
+
+                    </div>
+
+                </div>
+
+                <!-- Password -->
+                <div>
+
+                    <label class="block mb-2 font-semibold">
+                        Password
+                    </label>
+
+                    <div class="relative">
+
+                        <i class="fa-solid fa-lock absolute left-4 top-4 text-gray-400"></i>
+
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            placeholder="Enter password"
+                            class="w-full border rounded-xl py-3 pl-12 pr-12 focus:ring-2 focus:ring-blue-500 outline-none">
+
+                        <button
+                            type="button"
+                            onclick="togglePassword()"
+                            class="absolute right-4 top-3 text-gray-500">
+
+                            <i id="eyeIcon" class="fa-solid fa-eye"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- Remember -->
+                <div class="flex justify-between items-center">
+
+                    <label class="flex items-center gap-2 text-sm">
+
+                        <input type="checkbox">
+
+                        Remember Me
+
+                    </label>
+
+                    <a href="/forgot-password"
+                        class="text-blue-600 hover:underline text-sm">
+
+                        Forgot Password?
+
+                    </a>
+
+                </div>
+
+                <!-- Button -->
+
+                <button
+                    class="w-full bg-blue-700 hover:bg-blue-800 transition text-white py-3 rounded-xl font-semibold">
+
+                    Login
+
+                </button>
+
+            </form>
+
+            <p class="text-center mt-6 text-gray-600">
+
+                Don't have an account?
+
+                <a href="/signup"
+                    class="text-blue-700 font-semibold hover:underline">
+
+                    Register
+
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+</body>
+</html>
