@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vehicle Rental System - Login</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white shadow-2xl rounded-2xl overflow-hidden w-full max-w-5xl flex">
+
+        <!-- Left Side Image Section -->
+        <div class="hidden md:flex md:w-1/2 bg-blue-600 items-center justify-center p-10">
+            <div class="text-center text-white">
+                <h1 class="text-4xl font-bold mb-4">
+                    Vehicle Rental System
+                </h1>
+                <p class="text-lg">
+                    Rent your favorite vehicle anytime, anywhere.
+                </p>
+
+                <img src="images/images.jpg" alt="Vehicle" class="mt-8 rounded-xl shadow-lg" />
+            </div>
+        </div>
+
+        <!-- Right Side Login Form -->
+        <div class="w-full md:w-1/2 p-10">
+
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">
+                    Welcome Back
+                </h2>
+                <p class="text-gray-500 mt-2">
+                    Login to your account
+                </p>
+            </div>
+
+            <form>
+
+                <!-- Email -->
+                <div class="mb-5">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Email
+                    </label>
+                    <input type="email" placeholder="Enter your email"
+                        class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- Password -->
+                <div class="mb-5">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Password
+                    </label>
+                    <input type="password" placeholder="Enter password"
+                        class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="button" class="absolute right-3 top-9 text-gray-600 hover:text-gray-800">
+                        Show
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                        </svg>
+                        <span class="sr-only">Show password</span>
+                    </button>
+                </div>
+
+                <!-- Remember Me + Forgot Password -->
+                <div class="flex justify-between items-center mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span class="text-gray-600 text-sm">
+                            Remember me
+                        </span>
+                    </label>
+
+                    <a href="#" class="text-blue-600 text-sm hover:underline">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold">
+                    Login
+                </button>
+
+                <!-- Register Link -->
+                <p class="text-center text-gray-600 mt-5">
+                    Don't have an account? <br>
+                    <a href="signup.html" class="text-blue-600 font-semibold hover:underline">
+                        Register as a customer
+                    </a>
+                </p>
+                <p class="text-center text-gray-600 mt-5">
+
+                    <a href="signup.html" class="text-blue-600 font-semibold hover:underline">
+                        Register as a vehicle owner
+                    </a>
+                </p>
+
+            </form>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
