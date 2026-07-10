@@ -1,0 +1,64 @@
+<header class="bg-white shadow px-8 py-4 flex justify-between items-center">
+
+    <div>
+
+        <h1 class="text-3xl font-bold text-gray-800">
+
+            Customer Dashboard
+
+        </h1>
+
+        <p class="text-gray-500">
+
+            Welcome back,
+            {{ session.get("full_name","Customer") }}
+
+        </p>
+
+    </div>
+
+    <div class="flex items-center gap-5">
+
+        <button class="relative">
+
+            <i class="fas fa-bell text-2xl text-gray-600"></i>
+
+            <span
+                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+
+                0
+
+            </span>
+
+        </button>
+
+        <img
+            src="{{ url_for('static', filename='images/default_profile.png') }}"
+            class="w-12 h-12 rounded-full border-2 border-blue-500">
+
+        <div>
+
+            <h3 class="font-semibold">
+
+                {{ session.get("full_name","Customer") }}
+
+            </h3>
+
+            <small class="text-gray-500">
+
+                Customer
+
+            </small>
+
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}"
+           class="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600">
+
+            Logout
+
+        </a>
+
+    </div>
+
+</header>

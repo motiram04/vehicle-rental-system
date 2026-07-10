@@ -1,38 +1,27 @@
 from flask import Flask
-
-from config import *
-
+from config import Config
 from database.db import mysql
-
+from controllers.admin_controller import admin
+from controllers.owner_controller import owner
 from controllers.auth_controller import auth
+from controllers.customer_controller import customer
 
 app = Flask(__name__)
 
-# ------------------------
-# Flask Configuration
-# ------------------------
 
-app.config["MYSQL_HOST"] = MYSQL_HOST
-app.config["MYSQL_USER"] = MYSQL_USER
-app.config["MYSQL_PASSWORD"] = MYSQL_PASSWORD
-app.config["MYSQL_DB"] = MYSQL_DB
-app.config["MYSQL_CURSORCLASS"] = MYSQL_CURSORCLASS
+app.config.from_object(Config)
 
-app.secret_key = SECRET_KEY
-
-# ------------------------
-# Initialize Database
-# ------------------------
 
 mysql.init_app(app)
 
-# ------------------------
-# Register Blueprints
-# ------------------------
-
 app.register_blueprint(auth)
 
+app.register_blueprint(admin)
 
 
+app.register_blueprint(owner)
+
+
+app.register_blueprint(customer)
 if __name__ == "__main__":
     app.run(debug=True)

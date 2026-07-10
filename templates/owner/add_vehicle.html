@@ -1,0 +1,218 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}Add Vehicle{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">
+            Add New Vehicle
+        </h1>
+
+        <p class="text-gray-500 mt-2">
+            Fill in all vehicle details. Your vehicle will be sent to the admin for verification.
+        </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+
+    <div class="mb-6 p-4 rounded-lg
+                {% if category=='success' %}
+                    bg-green-100 text-green-700
+                {% else %}
+                    bg-red-100 text-red-700
+                {% endif %}">
+
+        {{ message }}
+
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Form -->
+
+    <form action="{{ url_for('owner.add_vehicle') }}" method="POST" enctype="multipart/form-data"
+        class="bg-white shadow-lg rounded-xl p-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Vehicle Name -->
+
+            <div>
+
+                <label class="font-semibold">
+                    Vehicle Name
+                </label>
+
+                <input type="text" name="vehicle_name" required
+                    class="w-full mt-2 border rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
+
+            </div>
+
+            <!-- Category -->
+
+            <div>
+
+                <!-- <label class="font-semibold"> 
+                    Vehicle Category
+                </label>
+
+                <select
+                    name="category_id"
+                    required
+                    class="w-full mt-2 border rounded-lg p-3">
+
+                    <option value=" ">
+
+                    </option> 
+                    
+
+                    {% for category in categories %}
+
+                    <option value="{{ category.category_id }}">
+                        {{ category.category_name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select> -->
+                <label class="font-semibold">
+                    Vehicle Category
+                </label>
+
+                <select name="category_id" required class="w-full mt-2 border rounded-lg p-3">
+
+                    <option value="">-- Select Category --</option>
+
+                    {% for category in categories %}
+
+                    <option value="{{ category.category_id }}">
+                        {{ category.category_name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <!-- Model -->
+
+            <div>
+
+                <label class="font-semibold">
+                    Model
+                </label>
+
+                <input type="text" name="model" required class="w-full mt-2 border rounded-lg p-3">
+
+            </div>
+
+            <!-- Vehicle Number -->
+
+            <div>
+
+                <label class="font-semibold">
+                    Vehicle Number
+                </label>
+
+                <input type="text" name="vehicle_number" placeholder="BA 2 CHA 1234" required
+                    class="w-full mt-2 border rounded-lg p-3">
+
+            </div>
+
+            <!-- Rent -->
+
+            <div>
+
+                <label class="font-semibold">
+                    Rent Per Day (Rs.)
+                </label>
+
+                <input type="number" name="rent_per_day" required class="w-full mt-2 border rounded-lg p-3">
+
+            </div>
+
+            <!-- Availability -->
+
+            <div>
+
+                <label class="font-semibold">
+                    Availability
+                </label>
+
+                <select name="availability_status" class="w-full mt-2 border rounded-lg p-3">
+
+                    <option value="Available">
+                        Available
+                    </option>
+
+                    <option value="Maintenance">
+                        Maintenance
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- Description -->
+
+        <div class="mt-6">
+
+            <label class="font-semibold">
+                Vehicle Description
+            </label>
+
+            <textarea name="description" rows="5" class="w-full mt-2 border rounded-lg p-3"
+                placeholder="Describe your vehicle..."></textarea>
+
+        </div>
+
+        <!-- Vehicle Image -->
+
+        <div class="mt-6">
+
+            <label class="font-semibold">
+                Vehicle Image
+            </label>
+
+            <input type="file" name="image" accept="image/*" required class="w-full mt-2 border rounded-lg p-3">
+
+        </div>
+
+        <!-- Buttons -->
+
+        <div class="mt-8 flex justify-end gap-4">
+
+            <a href="{{ url_for('owner.vehicles') }}"
+                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg">
+
+                Cancel
+
+            </a>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg">
+
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i>
+
+                Upload Vehicle
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

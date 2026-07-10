@@ -1,0 +1,35 @@
+<nav class="bg-white shadow px-8 py-4 flex justify-between items-center">
+
+    <h1 class="text-2xl font-bold">
+
+        Admin Dashboard
+
+    </h1>
+
+    <div class="flex items-center space-x-4">
+
+        <i class="fa-solid fa-bell text-xl"></i>
+
+        <img
+        src="{{ session.get('profile_image') if session.get('profile_image') else url_for('static', filename='images/default-profile.png') }}"
+        class="w-10 h-10 rounded-full object-cover">
+
+        <div>
+
+            <h3 class="font-semibold">
+
+                {{ session.get("full_name") }}
+
+            </h3>
+
+            <small>
+
+                {{ session.get("role") }}
+
+            </small>
+
+        </div>
+
+    </div>
+
+</nav>

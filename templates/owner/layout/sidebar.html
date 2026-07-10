@@ -1,0 +1,98 @@
+<aside class="w-72 bg-slate-900 text-white flex flex-col shadow-xl">
+
+    <!-- Logo -->
+    <div class="p-6 border-b border-slate-700">
+        <h1 class="text-2xl font-bold text-blue-400">
+            <i class="fa-solid fa-car-side mr-2"></i>
+            Vehicle Rentify
+        </h1>
+
+        <p class="text-gray-400 text-sm mt-2">
+            Owner Panel
+        </p>
+    </div>
+
+    <!-- Menu -->
+    <nav class="flex-1 mt-6">
+
+        <a href="{{ url_for('owner.dashboard') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-gauge-high w-6"></i>
+
+            <span>Dashboard</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.vehicles') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-car w-6"></i>
+
+            <span>My Vehicles</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.add_vehicle') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-circle-plus w-6"></i>
+
+            <span>Add Vehicle</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.bookings') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-calendar-check w-6"></i>
+
+            <span>Bookings</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.earnings') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-wallet w-6"></i>
+
+            <span>Earnings</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.profile') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-user w-6"></i>
+
+            <span>Profile</span>
+
+        </a>
+
+        <a href="{{ url_for('owner.settings') }}"
+           class="flex items-center px-6 py-4 hover:bg-blue-600 transition rounded-lg mx-3 mb-2">
+
+            <i class="fa-solid fa-gear w-6"></i>
+
+            <span>Settings</span>
+
+        </a>
+
+    </nav>
+
+    <!-- Logout -->
+
+    <div class="p-5 border-t border-slate-700">
+
+        <a href="{{ url_for('auth.logout') }}"
+           class="flex items-center justify-center bg-red-600 hover:bg-red-700 py-3 rounded-lg transition">
+
+            <i class="fa-solid fa-right-from-bracket mr-2"></i>
+
+            Logout
+
+        </a>
+
+    </div>
+
+</aside>

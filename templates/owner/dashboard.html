@@ -1,0 +1,347 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}Owner Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Section -->
+<div class="mb-8">
+
+    <h1 class="text-3xl font-bold text-gray-800">
+        Welcome, {{ session.get('full_name', 'Owner') }} 👋
+    </h1>
+
+    <p class="text-gray-500 mt-2">
+        Here's an overview of your vehicle rental business.
+    </p>
+
+</div>
+
+<!-- Dashboard Cards -->
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+
+    <!-- Total Vehicles -->
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Total Vehicles</p>
+
+                <h2 class="text-3xl font-bold mt-2">
+
+                    {{ total_vehicles|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-car text-4xl text-blue-500"></i>
+
+        </div>
+
+    </div>
+
+    <!-- Approved -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Approved</p>
+
+                <h2 class="text-3xl font-bold text-green-600 mt-2">
+
+                    {{ approved_vehicles|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-circle-check text-4xl text-green-500"></i>
+
+        </div>
+
+    </div>
+
+    <!-- Pending -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Pending</p>
+
+                <h2 class="text-3xl font-bold text-yellow-500 mt-2">
+
+                    {{ pending_vehicles|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-clock text-4xl text-yellow-500"></i>
+
+        </div>
+
+    </div>
+
+    <!-- Rejected -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Rejected</p>
+
+                <h2 class="text-3xl font-bold text-red-500 mt-2">
+
+                    {{ rejected_vehicles|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-circle-xmark text-4xl text-red-500"></i>
+
+        </div>
+
+    </div>
+
+    <!-- Bookings -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Bookings</p>
+
+                <h2 class="text-3xl font-bold mt-2">
+
+                    {{ total_bookings|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-calendar-check text-4xl text-purple-500"></i>
+
+        </div>
+
+    </div>
+
+    <!-- Earnings -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <p class="text-gray-500">Earnings</p>
+
+                <h2 class="text-2xl font-bold text-emerald-600 mt-2">
+
+                    Rs. {{ total_earnings|default(0) }}
+
+                </h2>
+
+            </div>
+
+            <i class="fa-solid fa-wallet text-4xl text-emerald-500"></i>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Recent Vehicles + Profile -->
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    <!-- Recent Vehicles -->
+
+    <div class="lg:col-span-2 bg-white rounded-xl shadow p-6">
+
+        <h2 class="text-xl font-bold mb-5">
+
+            Recent Vehicles
+
+        </h2>
+
+        <table class="w-full">
+
+            <thead>
+
+                <tr class="border-b">
+
+                    <th class="text-left py-3">Vehicle</th>
+
+                    <th>Status</th>
+
+                    <th>Rent</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for vehicle in recent_vehicles %}
+
+                <tr class="border-b hover:bg-gray-50">
+
+                    <td class="py-4">
+
+                        {{ vehicle.vehicle_name }}
+
+                    </td>
+
+                    <td>
+
+                        {{ vehicle.approval_status }}
+
+                    </td>
+
+                    <td>
+
+                        Rs. {{ vehicle.rent_per_day }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Owner Profile -->
+
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+
+        <img src="{{ url_for('static', filename='images/default-user.png') }}"
+
+             class="w-32 h-32 rounded-full mx-auto border-4 border-blue-500">
+
+        <h2 class="text-2xl font-bold mt-4">
+
+            {{ session.get('full_name') }}
+
+        </h2>
+
+        <p class="text-gray-500">
+
+            Vehicle Owner
+
+        </p>
+
+        <hr class="my-5">
+
+        <div class="text-left space-y-3">
+
+            <p>
+
+                <strong>Email:</strong>
+
+                {{ session.get('email') }}
+
+            </p>
+
+            <p>
+
+                <strong>Phone:</strong>
+
+                {{ session.get('phone') }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Recent Bookings -->
+
+<div class="bg-white rounded-xl shadow p-6">
+
+    <h2 class="text-xl font-bold mb-6">
+
+        Recent Booking Requests
+
+    </h2>
+
+    <table class="w-full">
+
+        <thead>
+
+            <tr class="border-b">
+
+                <th class="text-left py-3">Customer</th>
+
+                <th>Vehicle</th>
+
+                <th>Date</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for booking in recent_bookings %}
+
+            <tr class="border-b hover:bg-gray-50">
+
+                <td class="py-4">
+
+                    {{ booking.customer_name }}
+
+                </td>
+
+                <td>
+
+                    {{ booking.vehicle_name }}
+
+                </td>
+
+                <td>
+
+                    {{ booking.booking_date }}
+
+                </td>
+
+                <td>
+
+                    {{ booking.booking_status }}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

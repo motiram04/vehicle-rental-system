@@ -1,0 +1,260 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}Booking Requests{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto px-6 py-6">
+
+    <!-- Heading -->
+    <div class="flex justify-between items-center mb-6">
+
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">
+                Booking Requests
+            </h1>
+
+            <p class="text-gray-500">
+                Manage customer booking requests.
+            </p>
+        </div>
+
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="mb-4 p-4 rounded-lg
+                    {% if category=='success' %}
+                        bg-green-100 text-green-700
+                    {% elif category=='danger' %}
+                        bg-red-100 text-red-700
+                    {% else %}
+                        bg-blue-100 text-blue-700
+                    {% endif %}">
+
+                    {{ message }}
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+    {% endwith %}
+
+    {% if bookings %}
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
+        <table class="min-w-full">
+
+            <thead class="bg-blue-600 text-white">
+
+                <tr>
+
+                    <th class="py-3 px-4">Image</th>
+
+                    <th class="py-3 px-4">Customer</th>
+
+                    <th class="py-3 px-4">Vehicle</th>
+
+                    <th class="py-3 px-4">Pickup</th>
+
+                    <th class="py-3 px-4">Return</th>
+
+                    <th class="py-3 px-4">Days</th>
+
+                    <th class="py-3 px-4">Amount</th>
+
+                    <th class="py-3 px-4">Status</th>
+
+                    <th class="py-3 px-4">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for booking in bookings %}
+
+            <tr class="border-b hover:bg-gray-50 text-center">
+
+                <!-- Image -->
+                <td class="py-3">
+
+                    <img
+                        src="{{ url_for('static', filename='uploads/vehicles/' + booking.image) }}"
+                        class="w-24 h-16 object-cover rounded-lg mx-auto">
+
+                </td>
+
+                <!-- Customer -->
+
+                <td>
+
+                    <div class="font-semibold">
+
+                        {{ booking.customer_name }}
+
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+
+                        {{ booking.email }}
+
+                    </div>
+
+                </td>
+
+                <!-- Vehicle -->
+
+                <td>
+
+                    <div class="font-semibold">
+
+                        {{ booking.vehicle_name }}
+
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+
+                        {{ booking.vehicle_number }}
+
+                    </div>
+
+                </td>
+
+                <!-- Pickup -->
+
+                <td>
+
+                    {{ booking.pickup_date }}
+
+                </td>
+
+                <!-- Return -->
+
+                <td>
+
+                    {{ booking.return_date }}
+
+                </td>
+
+                <!-- Days -->
+
+                <td>
+
+                    {{ booking.total_days }}
+
+                </td>
+
+                <!-- Amount -->
+
+                <td class="font-bold text-green-600">
+
+                    Rs. {{ booking.total_amount }}
+
+                </td>
+
+                <!-- Status -->
+
+                <td>
+
+                    {% if booking.booking_status == "Pending" %}
+
+                        <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm">
+
+                            Pending
+
+                        </span>
+
+                    {% elif booking.booking_status == "Approved" %}
+
+                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
+
+                            Approved
+
+                        </span>
+
+                    {% elif booking.booking_status == "Rejected" %}
+
+                        <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm">
+
+                            Rejected
+
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <!-- Action -->
+
+                <td>
+
+                    {% if booking.booking_status == "Pending" %}
+
+                    <a href="{{ url_for('owner.approve_booking', booking_id=booking.booking_id) }}"
+                       class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm">
+
+                        Approve
+
+                    </a>
+
+                    <a href="{{ url_for('owner.reject_booking', booking_id=booking.booking_id) }}"
+                       class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm ml-2">
+
+                        Reject
+
+                    </a>
+
+                    {% else %}
+
+                    <span class="text-gray-400">
+
+                        Completed
+
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="bg-white rounded-xl shadow-lg p-10 text-center">
+
+        <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+
+        <h2 class="text-2xl font-bold">
+
+            No Booking Requests
+
+        </h2>
+
+        <p class="text-gray-500 mt-2">
+
+            You haven't received any booking requests yet.
+
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

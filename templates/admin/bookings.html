@@ -1,0 +1,13 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}Booking Management{% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-6">
+    Booking Management
+</h1>
+
+<p>Total Bookings: {{ bookings|length }}</p>
+
+{% endblock %}

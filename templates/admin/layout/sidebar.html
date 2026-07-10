@@ -1,0 +1,90 @@
+<div class="w-72 min-h-screen bg-slate-900 text-white">
+
+    <div class="p-6 text-2xl font-bold border-b border-gray-700">
+
+        🚗 Vehicle Rentify
+
+    </div>
+
+    <ul class="mt-5 space-y-2">
+
+        <li>
+            <a href="/admin/dashboard" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-house mr-3"></i>
+
+                Dashboard
+
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/users" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-users mr-3"></i>
+
+                User Management
+
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/vehicles" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-car mr-3"></i>
+
+                Vehicle Management
+
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/bookings" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-calendar-check mr-3"></i>
+
+                Booking Management
+
+            </a>
+        </li>
+        <li> 
+            <a href="{{ url_for('admin.pending_vehicles') }}" class="block px-6 py-3 hover:bg-slate-700">
+                <i class="fa-solid fa-car mr-3"></i>
+                Pending Vehicles
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/payments" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-credit-card mr-3"></i>
+
+                Payment Management
+
+            </a>
+        </li>
+
+        <li>
+            <a href="/admin/reports" class="block px-6 py-3 hover:bg-slate-700">
+
+                <i class="fa-solid fa-chart-line mr-3"></i>
+
+                Reports
+
+            </a>
+        </li>
+
+        <li>
+            <a href="/logout" class="block px-6 py-3 hover:bg-red-600">
+
+                <i class="fa-solid fa-right-from-bracket mr-3"></i>
+
+                Logout
+
+            </a>
+        </li>
+
+    </ul>
+
+
+</div>

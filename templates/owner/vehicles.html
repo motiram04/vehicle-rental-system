@@ -1,0 +1,293 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}My Vehicles{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-gray-800">
+                My Vehicles
+            </h1>
+
+            <p class="text-gray-500 mt-2">
+                Manage all your uploaded vehicles.
+            </p>
+
+        </div>
+
+        <a href="{{ url_for('owner.add_vehicle') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg">
+
+            <i class="fa-solid fa-plus mr-2"></i>
+
+            Add Vehicle
+
+        </a>
+
+    </div>
+
+    <!-- Flash Message -->
+
+    {% with messages=get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+
+        {% for category,message in messages %}
+
+        <div class="mb-6 p-4 rounded-lg
+
+            {% if category=="success" %}
+
+                bg-green-100 text-green-700
+
+            {% else %}
+
+                bg-red-100 text-red-700
+
+            {% endif %}
+
+        ">
+
+            {{ message }}
+
+        </div>
+
+        {% endfor %}
+
+    {% endif %}
+    {% endwith %}
+
+    <!-- Search -->
+
+    <div class="bg-white rounded-xl shadow p-5 mb-6">
+
+        <input
+
+            type="text"
+
+            placeholder="Search Vehicle..."
+
+            class="w-full border rounded-lg p-3"
+
+        >
+
+    </div>
+
+    <!-- Vehicle Table -->
+
+    <div class="bg-white rounded-xl shadow overflow-x-auto">
+
+        <table class="w-full">
+
+            <thead class="bg-gray-100">
+
+                <tr>
+
+                    <th class="py-4 px-4 text-left">Image</th>
+
+                    <th class="py-4 px-4 text-left">Vehicle</th>
+
+                    <!-- <th class="py-4 px-4 text-left">Category</th> -->
+
+                    <!-- <th class="py-4 px-4 text-left">Model</th> -->
+
+                    <th class="py-4 px-4 text-left">Rent / Day</th>
+
+                    <th class="py-4 px-4 text-center">Approval</th>
+
+                    <th class="py-4 px-4 text-center">Availability</th>
+
+                    <th class="py-4 px-4 text-center">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% if vehicles %}
+
+            {% for vehicle in vehicles %}
+
+                <tr class="border-b hover:bg-gray-50">
+
+                    <!-- Image -->
+
+                    <td class="p-4">
+
+                        <img
+
+                            src="{{ url_for('static', filename='uploads/vehicles/' + vehicle.image) }}"
+
+                            class="w-20 h-16 rounded-lg object-cover"
+
+                        >
+
+                    </td>
+
+                    <!-- Vehicle Name -->
+
+                    <td class="p-4">
+
+                        <h4 class="font-semibold">
+
+                            {{ vehicle.vehicle_name }}
+
+                        </h4>
+
+                        <p class="text-gray-500 text-sm">
+
+                            {{ vehicle.vehicle_number }}
+
+                        </p>
+
+                    </td>
+
+                    <!-- Category -->
+
+                    <td class="p-4">
+
+                        {{ vehicle.category_name }}
+
+                    </td>
+
+                    <!-- Model -->
+
+                    <!-- <td class="p-4"> -->
+
+                        <!-- {{ vehicle.model }} -->
+
+                    </td>
+
+                    <!-- Rent -->
+
+                    <td class="p-4">
+
+                        Rs. {{ vehicle.rent_per_day }}
+
+                    </td>
+
+                    <!-- Approval -->
+
+                    <td class="text-center">
+
+                        {% if vehicle.approval_status=="Approved" %}
+
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+
+                            Approved
+
+                        </span>
+
+                        {% elif vehicle.approval_status=="Pending" %}
+
+                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+
+                            Pending
+
+                        </span>
+
+                        {% else %}
+
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+
+                            Rejected
+
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <!-- Availability -->
+
+                    <td class="text-center">
+
+                        {% if vehicle.availability_status=="Available" %}
+
+                        <span class="text-green-600 font-semibold">
+
+                            Available
+
+                        </span>
+
+                        {% else %}
+
+                        <span class="text-orange-600 font-semibold">
+
+                            {{ vehicle.availability_status }}
+
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <!-- Actions -->
+
+                    <td class="text-center space-x-2">
+
+                        <a href="#"
+
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">
+
+                            <i class="fa-solid fa-eye"></i>
+
+                        </a>
+
+                        <a href="#"
+
+                           class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded">
+
+                            <i class="fa-solid fa-pen"></i>
+
+                        </a>
+
+                        <a href="#"
+
+                           onclick="return confirm('Delete this vehicle?')"
+
+                           class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+
+                            <i class="fa-solid fa-trash"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td colspan="8" class="text-center py-10 text-gray-500">
+
+                        <i class="fa-solid fa-car text-5xl mb-3"></i>
+
+                        <br>
+
+                        No vehicles uploaded yet.
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+    
+{% endblock %}

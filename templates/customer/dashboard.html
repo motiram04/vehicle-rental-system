@@ -1,0 +1,216 @@
+{% extends "customer/layout/base.html" %}
+
+{% block title %}
+Customer Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-cols-12 gap-6">
+
+    <!-- ========================= -->
+    <!-- Filter Sidebar -->
+    <!-- ========================= -->
+
+    <div class="col-span-3">
+
+        <div class="bg-white rounded-xl shadow p-6 sticky top-5">
+
+            <h2 class="text-xl font-bold mb-5">
+
+                <i class="fas fa-filter text-blue-600"></i>
+
+                Filter Vehicles
+
+            </h2>
+
+            <!-- Search -->
+
+            <form action="#" method="GET">
+
+                <input type="text" name="search" placeholder="Search vehicle..."
+                    class="w-full border rounded-lg p-3 mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <!-- Category -->
+
+                <label class="font-semibold block mb-2">
+
+                    Vehicle Type
+
+                </label>
+
+                <select <option value="">All Categories</option>
+
+                    {% for category in categories %}
+
+                    <option value="{{ category.category_id }}">
+                        {{ category.category_name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <!-- Price -->
+
+                <label class="font-semibold block mb-2">
+
+                    Maximum Price
+
+                </label>
+
+                <input type="range" min="100" max="5000" value="5000" class="w-full mb-4">
+
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg">
+
+                    Apply Filter
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- Vehicle Cards -->
+    <!-- ========================= -->
+
+    <div class="col-span-9">
+
+        <!-- Header -->
+
+        <div class="flex justify-between items-center mb-6">
+
+            <div>
+
+                <h1 class="text-3xl font-bold">
+
+                    Available Vehicles
+
+                </h1>
+
+                <p class="text-gray-500">
+
+                    Find the perfect vehicle for your trip.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Vehicle Grid -->
+
+        <div class="grid grid-cols-3 gap-6">
+
+            {% if vehicles %}
+
+            {% for vehicle in vehicles %}
+
+            <div class="bg-white rounded-xl shadow hover:shadow-xl transition">
+
+                <!-- Image -->
+
+                <div class="relative">
+
+                    <img src="{{ url_for('static', filename='uploads/vehicles/' + vehicle.image) }}"
+                        alt="{{ vehicle.vehicle_name }}" class="w-full h-52 object-cover rounded-t-xl">
+
+                    <span class="absolute top-3 left-3 bg-green-600 text-white text-xs px-3 py-1 rounded-full">
+
+                        {{ vehicle.availability_status }}
+
+                    </span>
+
+                </div>
+
+                <!-- Body -->
+
+                <div class="p-5">
+
+                    <h2 class="text-xl font-bold">
+
+                        {{ vehicle.vehicle_name }}
+
+                    </h2>
+
+                    <p class="text-gray-500">
+
+                        {{ vehicle.category_name }}
+
+                    </p>
+
+                    <div class="flex justify-between items-center mt-4">
+
+                        <div>
+
+                            <p class="text-blue-600 text-2xl font-bold">
+
+                                Rs. {{ vehicle.rent_per_day }}
+
+                            </p>
+
+                            <small class="text-gray-500">
+
+                                / day
+
+                            </small>
+
+                        </div>
+
+                        <div class="text-yellow-500">
+
+                            ⭐ 4.8
+
+                        </div>
+
+                    </div>
+
+                    <a href="{{ url_for('customer.vehicle_details', vehicle_id=vehicle.vehicle_id) }}"
+                        class="block mt-5 bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-lg">
+
+                        View Details
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+            {% else %}
+
+            <div class="col-span-3">
+
+                <div class="bg-white p-10 rounded-xl text-center">
+
+                    <i class="fas fa-car text-5xl text-gray-400 mb-5"></i>
+
+                    <h2 class="text-2xl font-bold">
+
+                        No Vehicles Found
+
+                    </h2>
+
+                    <p class="text-gray-500 mt-2">
+
+                        Please check again later.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

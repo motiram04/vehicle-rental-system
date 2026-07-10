@@ -1,0 +1,87 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}
+Pending Vehicles
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-lg shadow p-6">
+
+    <h2 class="text-2xl font-bold mb-6">
+        Pending Vehicles
+    </h2>
+
+    <table class="min-w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="p-3 text-left">Vehicle</th>
+
+                <th class="p-3 text-left">Owner</th>
+
+                <th class="p-3 text-left">Rent</th>
+
+                <th class="p-3 text-left">Status</th>
+
+                <th class="p-3 text-center">Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for vehicle in vehicles %}
+
+            <tr class="border-b">
+
+                <td class="p-3">
+                    {{ vehicle.vehicle_name }}
+                </td>
+
+                <td class="p-3">
+                    {{ vehicle.full_name }}
+                </td>
+
+                <td class="p-3">
+                    Rs. {{ vehicle.rent_per_day }}
+                </td>
+
+                <td class="p-3">
+                    {{ vehicle.approval_status }}
+                </td>
+
+                <td class="p-3 text-center">
+
+                    <a href="{{ url_for('admin.approve_vehicle',
+                    vehicle_id=vehicle.vehicle_id) }}"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+
+                        Approve
+
+                    </a>
+
+                    <a href="{{ url_for('admin.reject_vehicle',
+                    vehicle_id=vehicle.vehicle_id) }}"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded ml-2">
+
+                        Reject
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

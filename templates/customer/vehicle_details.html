@@ -1,0 +1,330 @@
+{% extends "customer/layout/base.html" %}
+
+{% block title %}
+{{ vehicle.vehicle_name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-cols-12 gap-8">
+
+    <!-- ============================= -->
+    <!-- Vehicle Image -->
+    <!-- ============================= -->
+
+    <div class="col-span-7">
+
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+
+            <img src="{{ url_for('static', filename='uploads/vehicles/' + vehicle.image) }}"
+                alt="{{ vehicle.vehicle_name }}" class="w-full h-[420px] object-cover rounded-xl"
+                onerror="this.src='{{ url_for('static', filename='uploads/vehicles/default_vehicle.jpg') }}'">
+        </div>
+
+        <!-- Future Image Gallery -->
+
+        <div class="grid grid-cols-4 gap-3 mt-4">
+
+            <div class="border rounded-lg p-2">
+
+                <img src="{{ url_for('static', filename='uploads/vehicles/' + vehicle.image) }}"
+                    class="rounded-lg h-24 w-full object-cover">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- Vehicle Information -->
+    <!-- ============================= -->
+
+    <div class="col-span-5">
+
+        <div class="bg-white rounded-xl shadow p-6">
+
+            <h1 class="text-3xl font-bold">
+
+                {{ vehicle.vehicle_name }}
+
+            </h1>
+
+            <p class="text-gray-500 mt-2">
+
+                {{ vehicle.category_name }}
+
+            </p>
+
+            <div class="mt-5">
+
+                <span class="bg-green-100 text-green-700 px-3 py-2 rounded-full">
+
+                    {{ vehicle.availability_status }}
+
+                </span>
+
+            </div>
+
+            <div class="mt-6">
+
+                <h2 class="text-4xl font-bold text-blue-600">
+
+                    Rs. {{ vehicle.rent_per_day }}
+
+                    <span class="text-lg text-gray-500">
+
+                        / day
+
+                    </span>
+
+                </h2>
+
+            </div>
+
+            <hr class="my-6">
+
+            <div class="space-y-4">
+
+                <div class="flex justify-between">
+
+                    <span class="font-semibold">
+
+                        Model
+
+                    </span>
+
+                    <span>
+
+                        {{ vehicle.model }}
+
+                    </span>
+
+                </div>
+
+                <div class="flex justify-between">
+
+                    <span class="font-semibold">
+
+                        Fuel Type
+
+                    </span>
+
+                    <span>
+
+                        {{ vehicle.fuel_type }}
+
+                    </span>
+
+                </div>
+
+                <div class="flex justify-between">
+
+                    <span class="font-semibold">
+
+                        Transmission
+
+                    </span>
+
+                    <span>
+
+                        {{ vehicle.transmission }}
+
+                    </span>
+
+                </div>
+
+                <div class="flex justify-between">
+
+                    <span class="font-semibold">
+
+                        Seats
+
+                    </span>
+
+                    <span>
+
+                        {{ vehicle.seating_capacity }}
+
+                    </span>
+
+                </div>
+
+                <div class="flex justify-between">
+
+                    <span class="font-semibold">
+
+                        Location
+
+                    </span>
+
+                    <span>
+
+                        {{ vehicle.location }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ============================= -->
+        <!-- Owner Details -->
+        <!-- ============================= -->
+
+        <div class="bg-white rounded-xl shadow mt-6 p-6">
+
+            <h2 class="text-xl font-bold mb-5">
+
+                Vehicle Owner
+
+            </h2>
+
+            <div class="flex items-center gap-4">
+
+                <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">
+
+                    <i class="fas fa-user"></i>
+
+                </div>
+
+                <div>
+
+                    <h3 class="text-lg font-bold">
+
+                        {{ vehicle.full_name }}
+
+                    </h3>
+
+                    <p class="text-gray-500">
+
+                        {{ vehicle.email }}
+
+                    </p>
+
+                    <p class="text-gray-500">
+
+                        {{ vehicle.phone }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ============================= -->
+        <!-- Booking -->
+        <!-- ============================= -->
+
+        <div class="bg-white rounded-xl shadow p-6">
+
+            <h2 class="text-2xl font-bold mb-6">
+                Book This Vehicle
+            </h2>
+
+            <form action="{{ url_for('customer.book_vehicle', vehicle_id=vehicle.vehicle_id) }}" method="POST">
+
+                <!-- Pickup Date -->
+                <div class="mb-4">
+
+                    <label class="block font-semibold mb-2">
+                        Pickup Date
+                    </label>
+
+                    <input type="date" name="pickup_date" id="pickup_date" required
+                        class="w-full border rounded-lg p-3">
+
+                </div>
+
+                <!-- Return Date -->
+                <div class="mb-4">
+
+                    <label class="block font-semibold mb-2">
+                        Return Date
+                    </label>
+
+                    <input type="date" name="return_date" id="return_date" required
+                        class="w-full border rounded-lg p-3">
+
+                </div>
+
+                <!-- Total Days -->
+                <div class="mb-4">
+
+                    <label class="block font-semibold">
+                        Total Days
+                    </label>
+
+                    <input type="text" id="total_days" readonly class="w-full border rounded-lg p-3 bg-gray-100">
+
+                </div>
+
+                <!-- Total Amount -->
+                <div class="mb-6">
+
+                    <label class="block font-semibold">
+                        Total Amount
+                    </label>
+
+                    <input type="text" id="total_amount" readonly class="w-full border rounded-lg p-3 bg-gray-100">
+
+                </div>
+
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg">
+
+                    Book Now
+
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+    <script>
+
+        const pickup = document.getElementById("pickup_date");
+        const returnDate = document.getElementById("return_date");
+
+        const totalDays = document.getElementById("total_days");
+        const totalAmount = document.getElementById("total_amount");
+
+        const rent = {{ vehicle.rent_per_day }};
+
+        function calculateBooking() {
+
+            if (pickup.value && returnDate.value) {
+
+                const start = new Date(pickup.value);
+                const end = new Date(returnDate.value);
+
+                const diff = (end - start) / (1000 * 60 * 60 * 24);
+
+                if (diff > 0) {
+
+                    totalDays.value = diff + " Days";
+
+                    totalAmount.value = "Rs. " + (diff * rent);
+
+                } else {
+
+                    totalDays.value = "";
+
+                    totalAmount.value = "";
+
+                }
+
+            }
+
+        }
+
+        pickup.addEventListener("change", calculateBooking);
+
+        returnDate.addEventListener("change", calculateBooking);
+
+    </script>
+
+    {% endblock %}

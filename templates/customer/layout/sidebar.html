@@ -1,0 +1,85 @@
+<aside class="w-72 bg-white shadow-lg flex flex-col">
+
+    <!-- Logo -->
+
+    <div class="p-6 border-b">
+
+        <h2 class="text-2xl font-bold text-blue-600">
+
+            <i class="fas fa-car-side mr-2"></i>
+
+            Rentify Go
+
+        </h2>
+
+        <p class="text-sm text-gray-500 mt-1">
+            Customer Panel
+        </p>
+
+    </div>
+
+    <!-- Menu -->
+
+    <nav class="flex-1 mt-6">
+
+        <a href="{{ url_for('customer.dashboard') }}"
+            class="flex items-center gap-3 px-6 py-4 hover:bg-blue-100 transition">
+
+            <i class="fas fa-home"></i>
+
+            Dashboard
+
+        </a>
+
+        <a href="{{ url_for('customer.vehicles') }}"
+            class="flex items-center gap-3 px-6 py-4 hover:bg-blue-100 transition">
+
+            <i class="fas fa-car"></i>
+
+            Vehicles
+
+        </a>
+
+        <a href="{{ url_for('customer.bookings') }}"
+            class="flex items-center gap-3 px-6 py-4 hover:bg-blue-100 transition">
+
+            <i class="fas fa-calendar-check"></i>
+
+            My Bookings
+
+        </a>
+
+        <a href="{{ url_for('customer.wishlist') }}"
+            class="flex items-center gap-3 px-6 py-4 hover:bg-blue-100 transition">
+
+            <i class="fas fa-heart"></i>
+
+            Wishlist
+
+        </a>
+
+        <a href="{{ url_for('customer.profile') }}"
+            class="flex items-center gap-3 px-6 py-4 hover:bg-blue-100 transition">
+
+            <i class="fas fa-user-circle"></i>
+
+            Profile
+
+        </a>
+        
+
+    </nav>
+    <li>
+            <a href="{{ url_for('owner.bookings') }}"
+                class="flex items-center px-4 py-3 hover:bg-blue-100 rounded-lg transition">
+
+                <i class="fas fa-calendar-check w-6"></i>
+
+                <span class="ml-3">
+                    Booking Requests
+                </span>
+
+            </a>
+        </li>
+
+</aside>
