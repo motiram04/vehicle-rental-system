@@ -1,0 +1,314 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+
+    <h1 class="text-3xl font-bold">
+        User Management
+    </h1>
+
+    <span class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+        Total Users : {{ users|length }}
+    </span>
+
+</div>
+<div class="grid grid-cols-4 gap-5 mb-6">
+
+    <div class="bg-blue-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">👥 Total Users</h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.total_users }}
+        </p>
+
+    </div>
+
+    <div class="bg-red-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">👑 Admins</h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.admins }}
+        </p>
+
+    </div>
+
+    <div class="bg-green-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">🙋 Customers</h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.customers }}
+        </p>
+
+    </div>
+
+    <div class="bg-yellow-500 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">🚗 Owners</h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.owners }}
+        </p>
+
+    </div>
+
+</div>
+<!-- <form method="GET" action="{{ url_for('admin.users') }}" class="flex gap-4 mb-6">
+
+    <input type="text" name="search" value="{{ search if search else '' }}"
+        placeholder="Search by name, email or phone..." class="border border-gray-300 rounded-lg px-4 py-2 w-80">
+
+    <select name="role" class="border border-gray-300 rounded-lg px-4 py-2">
+
+        <option value="">All Roles</option>
+
+        <option value="admin" {% if role=="admin" %}selected{% endif %}>
+            Admin
+        </option>
+
+        <option value="owner" {% if role=="owner" %}selected{% endif %}>
+            Owner
+        </option>
+
+        <option value="customer" {% if role=="customer" %}selected{% endif %}>
+            Customer
+        </option>
+
+    </select>
+
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg">
+
+        Search
+
+    </button>
+
+    <a href="{{ url_for('admin.users') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
+
+        Reset
+
+    </a>
+
+</form> -->
+<div class="overflow-x-auto bg-white rounded-lg shadow">
+
+    <table class="min-w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="px-5 py-3 text-left">ID</th>
+
+                <th class="px-5 py-3 text-left">Full Name</th>
+
+                <th class="px-5 py-3 text-left">Email</th>
+
+                <th class="px-5 py-3 text-left">Phone</th>
+
+                <th class="px-5 py-3 text-center">Role</th>
+
+                <th class="px-5 py-3 text-center">Joined</th>
+
+                <th class="px-5 py-3 text-center">Status</th>
+
+                <th class="px-5 py-3 text-center">Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for user in users %}
+
+            <tr class="border-b hover:bg-gray-50">
+
+                <td class="px-5 py-4">
+                    {{ user.user_id }}
+                </td>
+
+                <td class="px-5 py-4 font-medium">
+                    {{ user.full_name }}
+                </td>
+
+                <td class="px-5 py-4">
+                    {{ user.email }}
+                </td>
+
+                <td class="px-5 py-4">
+                    {{ user.phone }}
+                </td>
+
+                <td class="px-5 py-4 text-center">
+
+                    {% if user.role == "admin" %}
+
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                        Admin
+                    </span>
+
+                    {% elif user.role == "owner" %}
+
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                        Owner
+                    </span>
+
+                    {% else %}
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                        Customer
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td class="px-5 py-4 text-center">
+                    {{ user.created_at }}
+                </td>
+                <!-- <td>
+                    {% if user.status == "Active" %}
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                        Active
+                    </span>
+                    {% else %}
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                        Inactive
+                    </span>
+                    {% endif %}
+                </td>
+
+                <td class="px-5 py-4 text-center space-x-2">
+
+                    <a href="{{ url_for('admin.view_user', user_id=user.user_id) }}"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">
+                        View
+                    </a>
+
+                    <a href="{{ url_for('admin.edit_user', user_id=user.user_id) }}"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded">
+                        Edit
+                    </a>
+
+                    {% if user.status|lower == "active" %}
+
+                    <a href="{{ url_for('admin.deactivate_user', user_id=user.user_id) }}"
+                        class="bg-red-500 text-white px-3 py-2 rounded">
+                        Deactivate
+                    </a>
+
+                    {% else %}
+
+                    <a href="{{ url_for('admin.activate_user', user_id=user.user_id) }}"
+                        onclick="return confirm('Are you sure you want to activate this user?')"
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">
+                        Activate
+                    </a>
+                    {% endif %}
+
+                </td> -->
+                <!-- STATUS -->
+                <td class="px-5 py-4 text-center">
+
+                    {% if user.status|lower == "active" %}
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                        Active
+                    </span>
+
+                    {% else %}
+
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                        Inactive
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- ACTION -->
+                <td class="px-5 py-4 text-center space-x-2">
+
+                    <!-- VIEW -->
+                    <a href="{{ url_for('admin.view_user', user_id=user.user_id) }}"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">
+                        View
+                    </a>
+
+
+                    <!-- EDIT -->
+                    <a href="{{ url_for('admin.edit_user', user_id=user.user_id) }}"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded">
+                        Edit
+                    </a>
+
+
+                    <!-- ACTIVE USER -->
+                    {% if user.status|lower == "active" %}
+
+                    <a href="{{ url_for('admin.deactivate_user', user_id=user.user_id) }}"
+                        onclick="return confirm('Are you sure you want to deactivate this user?')"
+                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">
+                        Deactivate
+                    </a>
+
+                    <!-- INACTIVE USER -->
+                    {% else %}
+
+                    <a href="{{ url_for('admin.activate_user', user_id=user.user_id) }}"
+                        onclick="return confirm('Are you sure you want to activate this user?')"
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">
+                        Activate
+                    </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
+<form method="GET" class="flex gap-4 mb-6">
+
+    <input type="text" name="search" value="{{ search }}" placeholder="Search name, email or phone..."
+        class="border rounded-lg px-4 py-2 w-80">
+
+    <select name="role" class="border rounded-lg px-4 py-2">
+
+        <option value="">All Roles</option>
+
+        <option value="admin" {% if role=="admin" %}selected{% endif %}>
+            Admin
+        </option>
+
+        <option value="owner" {% if role=="owner" %}selected{% endif %}>
+            Owner
+        </option>
+
+        <option value="customer" {% if role=="customer" %}selected{% endif %}>
+            Customer
+        </option>
+
+    </select>
+
+    <button class="bg-blue-600 text-white px-5 rounded-lg hover:bg-blue-700">
+
+        Search
+
+    </button>
+
+</form>

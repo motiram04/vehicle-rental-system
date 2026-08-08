@@ -1,0 +1,380 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}Vehicle Management{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+
+<div class="flex justify-between items-center mb-6">
+
+    <h1 class="text-3xl font-bold">
+        Vehicle Management
+    </h1>
+
+    <span class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+        Total Vehicles: {{ stats.total }}
+    </span>
+
+</div>
+
+
+<!-- STATISTICS -->
+
+<div class="grid grid-cols-5 gap-4 mb-6">
+
+    <div class="bg-blue-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            🚗 Total Vehicles
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.total }}
+        </p>
+
+    </div>
+
+
+    <div class="bg-green-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            🟢 Available
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.available }}
+        </p>
+
+    </div>
+
+
+    <div class="bg-red-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            🔴 Booked
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.booked }}
+        </p>
+
+    </div>
+
+
+    <div class="bg-yellow-500 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            🔧 Maintenance
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.maintenance }}
+        </p>
+
+    </div>
+
+
+    <div class="bg-purple-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            ⏳ Pending
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.pending }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- SEARCH + FILTER -->
+
+<div class="bg-white rounded-lg shadow p-5 mb-6">
+
+    <form method="GET" action="{{ url_for('admin.vehicles') }}" class="flex flex-wrap gap-4">
+
+        <!-- SEARCH -->
+
+        <input type="text" name="search" value="{{ search }}" placeholder="Search vehicle, model, number or owner..."
+            class="border border-gray-300 rounded-lg px-4 py-2 w-80">
+
+
+        <!-- CATEGORY -->
+
+        <select name="category" class="border border-gray-300 rounded-lg px-4 py-2">
+
+            <option value="">
+                All Categories
+            </option>
+
+            {% for cat in categories %}
+
+            <option value="{{ cat.category_id }}" {% if category==cat.category_id|string %}selected{% endif %}>
+
+                {{ cat.category_name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <!-- AVAILABILITY -->
+
+        <select name="availability" class="border border-gray-300 rounded-lg px-4 py-2">
+
+            <option value="">
+                All Availability
+            </option>
+
+            <option value="Available" {% if availability=="Available" %}selected{% endif %}>
+                Available
+            </option>
+
+            <option value="Booked" {% if availability=="Booked" %}selected{% endif %}>
+                Booked
+            </option>
+
+            <option value="Maintenance" {% if availability=="Maintenance" %}selected{% endif %}>
+                Maintenance
+            </option>
+
+        </select>
+
+
+        <!-- APPROVAL -->
+
+        <select name="approval" class="border border-gray-300 rounded-lg px-4 py-2">
+
+            <option value="">
+                All Approval
+            </option>
+
+            <option value="Pending" {% if approval=="Pending" %}selected{% endif %}>
+                Pending
+            </option>
+
+            <option value="Approved" {% if approval=="Approved" %}selected{% endif %}>
+                Approved
+            </option>
+
+            <option value="Rejected" {% if approval=="Rejected" %}selected{% endif %}>
+                Rejected
+            </option>
+
+        </select>
+
+
+        <!-- SEARCH BUTTON -->
+
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+
+            Search
+
+        </button>
+
+
+        <!-- RESET -->
+
+        <a href="{{ url_for('admin.vehicles') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
+
+            Reset
+
+        </a>
+
+    </form>
+
+</div>
+
+
+<!-- VEHICLE TABLE -->
+
+<div class="overflow-x-auto bg-white rounded-lg shadow">
+
+    <table class="min-w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="px-4 py-3 text-left">
+                    ID
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Vehicle
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Model
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Vehicle Number
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Owner
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Category
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Rent / Day
+                </th>
+
+                <th class="px-4 py-3 text-center">
+                    Availability
+                </th>
+
+                <th class="px-4 py-3 text-center">
+                    Approval
+                </th>
+
+                <th class="px-4 py-3 text-center">
+                    Action
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for vehicle in vehicles %}
+
+            <tr class="border-b hover:bg-gray-50">
+
+                <td class="px-4 py-4">
+                    {{ vehicle.vehicle_id }}
+                </td>
+
+
+                <td class="px-4 py-4 font-medium">
+                    {{ vehicle.vehicle_name }}
+                </td>
+
+
+                <td class="px-4 py-4">
+                    {{ vehicle.model }}
+                </td>
+
+
+                <td class="px-4 py-4">
+                    {{ vehicle.vehicle_number }}
+                </td>
+
+
+                <td class="px-4 py-4">
+                    {{ vehicle.owner_name }}
+                </td>
+
+
+                <td class="px-4 py-4">
+                    {{ vehicle.category_name }}
+                </td>
+
+
+                <td class="px-4 py-4">
+                    Rs. {{ vehicle.rent_per_day }}
+                </td>
+
+
+                <!-- AVAILABILITY -->
+
+                <td class="px-4 py-4 text-center">
+
+                    {% if vehicle.availability_status == "Available" %}
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                        Available
+                    </span>
+
+                    {% elif vehicle.availability_status == "Booked" %}
+
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                        Booked
+                    </span>
+
+                    {% else %}
+
+                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                        Maintenance
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- APPROVAL -->
+
+                <td class="px-4 py-4 text-center">
+
+                    {% if vehicle.approval_status == "Approved" %}
+
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                        Approved
+                    </span>
+
+                    {% elif vehicle.approval_status == "Pending" %}
+
+                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                        Pending
+                    </span>
+
+                    {% else %}
+
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                        Rejected
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- ACTION -->
+
+                <td class="px-4 py-4 text-center">
+
+                    <a href="{{ url_for('admin.view_vehicle', vehicle_id=vehicle.vehicle_id) }}"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">
+
+                        View
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="10" class="text-center py-8 text-gray-500">
+
+                    No vehicles found.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

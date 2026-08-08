@@ -4,10 +4,442 @@
 
 {% block content %}
 
-<h1 class="text-3xl font-bold mb-6">
-    Booking Management
-</h1>
+<!-- HEADER -->
 
-<p>Total Bookings: {{ bookings|length }}</p>
+<div class="flex justify-between items-center mb-6">
+
+    <h1 class="text-3xl font-bold">
+        Booking Management
+    </h1>
+
+    <span class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+        Total Bookings: {{ stats.total }}
+    </span>
+
+</div>
+
+
+<!-- BOOKING STATISTICS -->
+
+<div class="grid grid-cols-5 gap-4 mb-6">
+
+
+    <!-- TOTAL -->
+
+    <div class="bg-blue-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            📋 Total
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.total }}
+        </p>
+
+    </div>
+
+
+    <!-- PENDING -->
+
+    <div class="bg-yellow-500 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            ⏳ Pending
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.pending }}
+        </p>
+
+    </div>
+
+
+    <!-- APPROVED -->
+
+    <div class="bg-green-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            ✅ Approved
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.approved }}
+        </p>
+
+    </div>
+
+
+    <!-- REJECTED -->
+
+    <div class="bg-red-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            ❌ Rejected
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.rejected }}
+        </p>
+
+    </div>
+
+
+    <!-- COMPLETED -->
+
+    <div class="bg-purple-600 text-white rounded-lg p-5 shadow">
+
+        <h2 class="text-lg">
+            🏁 Completed
+        </h2>
+
+        <p class="text-3xl font-bold">
+            {{ stats.completed }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- SEARCH AND FILTER -->
+
+<div class="bg-white rounded-lg shadow p-5 mb-6">
+
+    <form
+        method="GET"
+        action="{{ url_for('admin.bookings') }}"
+        class="flex flex-wrap gap-4"
+    >
+
+        <!-- SEARCH -->
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search ID, customer, owner, vehicle..."
+            class="border border-gray-300 rounded-lg px-4 py-2 w-96"
+        >
+
+
+        <!-- STATUS -->
+
+        <select
+            name="status"
+            class="border border-gray-300 rounded-lg px-4 py-2"
+        >
+
+            <option value="">
+                All Status
+            </option>
+
+            <option
+                value="Pending"
+                {% if status == "Pending" %}selected{% endif %}
+            >
+                Pending
+            </option>
+
+            <option
+                value="Approved"
+                {% if status == "Approved" %}selected{% endif %}
+            >
+                Approved
+            </option>
+
+            <option
+                value="Rejected"
+                {% if status == "Rejected" %}selected{% endif %}
+            >
+                Rejected
+            </option>
+
+            <option
+                value="Completed"
+                {% if status == "Completed" %}selected{% endif %}
+            >
+                Completed
+            </option>
+
+            <option
+                value="Cancelled"
+                {% if status == "Cancelled" %}selected{% endif %}
+            >
+                Cancelled
+            </option>
+
+        </select>
+
+
+        <!-- SEARCH -->
+
+        <button
+            type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+        >
+            Search
+        </button>
+
+
+        <!-- RESET -->
+
+        <a
+            href="{{ url_for('admin.bookings') }}"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg"
+        >
+            Reset
+        </a>
+
+    </form>
+
+</div>
+
+
+<!-- BOOKING TABLE -->
+
+<div class="overflow-x-auto bg-white rounded-lg shadow">
+
+    <table class="min-w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="px-4 py-3 text-left">
+                    Booking ID
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Customer
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Vehicle
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Owner
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Booking Date
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Pickup
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Return
+                </th>
+
+                <th class="px-4 py-3 text-center">
+                    Days
+                </th>
+
+                <th class="px-4 py-3 text-left">
+                    Amount
+                </th>
+
+                <th class="px-4 py-3 text-center">
+                    Status
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for booking in bookings %}
+
+            <tr class="border-b hover:bg-gray-50">
+
+
+                <!-- BOOKING ID -->
+
+                <td class="px-4 py-4 font-semibold">
+
+                    #{{ booking.booking_id }}
+
+                </td>
+
+
+                <!-- CUSTOMER -->
+
+                <td class="px-4 py-4">
+
+                    {{ booking.customer_name }}
+
+                </td>
+
+
+                <!-- VEHICLE -->
+
+                <td class="px-4 py-4">
+
+                    <div class="font-medium">
+                        {{ booking.vehicle_name }}
+                    </div>
+
+                    {% if booking.vehicle_number %}
+
+                    <div class="text-xs text-gray-500">
+                        {{ booking.vehicle_number }}
+                    </div>
+
+                    {% endif %}
+
+                </td>
+
+
+                <!-- OWNER -->
+
+                <td class="px-4 py-4">
+
+                    {{ booking.owner_name }}
+
+                </td>
+
+
+                <!-- BOOKING DATE -->
+
+                <td class="px-4 py-4 text-sm">
+
+                    {{ booking.booking_date }}
+
+                </td>
+
+
+                <!-- PICKUP -->
+
+                <td class="px-4 py-4">
+
+                    {{ booking.pickup_date }}
+
+                </td>
+
+
+                <!-- RETURN -->
+
+                <td class="px-4 py-4">
+
+                    {{ booking.return_date }}
+
+                </td>
+
+
+                <!-- DAYS -->
+
+                <td class="px-4 py-4 text-center">
+
+                    {{ booking.total_days }}
+
+                </td>
+
+
+                <!-- AMOUNT -->
+
+                <td class="px-4 py-4 font-semibold">
+
+                    Rs. {{ booking.total_amount }}
+
+                </td>
+
+
+                <!-- STATUS -->
+
+                <td class="px-4 py-4 text-center">
+
+
+                    {% if booking.booking_status == "Pending" %}
+
+                    <span
+                        class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        Pending
+                    </span>
+
+
+                    {% elif booking.booking_status == "Approved" %}
+
+                    <span
+                        class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        Approved
+                    </span>
+
+
+                    {% elif booking.booking_status == "Rejected" %}
+
+                    <span
+                        class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        Rejected
+                    </span>
+
+
+                    {% elif booking.booking_status == "Completed" %}
+
+                    <span
+                        class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        Completed
+                    </span>
+
+
+                    {% elif booking.booking_status == "Cancelled" %}
+
+                    <span
+                        class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        Cancelled
+                    </span>
+
+
+                    {% else %}
+
+                    <span
+                        class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                        {{ booking.booking_status }}
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+
+            {% else %}
+
+            <!-- NO RESULTS -->
+
+            <tr>
+
+                <td
+                    colspan="10"
+                    class="text-center py-10 text-gray-500"
+                >
+
+                    <div class="text-4xl mb-2">
+                        📭
+                    </div>
+
+                    No bookings found.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
 
 {% endblock %}
