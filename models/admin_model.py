@@ -3,116 +3,149 @@ from database.db import mysql
 
 class AdminModel:
 
+    # ==========================================================
+    # DASHBOARD STATISTICS
+    # ==========================================================
+
     @staticmethod
     def get_dashboard_statistics():
 
         cursor = mysql.connection.cursor()
 
-        # Total Users
-        cursor.execute("SELECT COUNT(*) AS total_users FROM users")
+        # --------------------------
+        # Users
+        # --------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_users
+            FROM users
+        """)
         total_users = cursor.fetchone()["total_users"]
 
-        # Total Customers
-        cursor.execute("SELECT COUNT(*) AS customers FROM users WHERE role='customer'")
+        cursor.execute("""
+            SELECT COUNT(*) AS customers
+            FROM users
+            WHERE role = 'customer'
+        """)
         customers = cursor.fetchone()["customers"]
 
-        # Total Owners
-        cursor.execute("SELECT COUNT(*) AS owners FROM users WHERE role='owner'")
+        cursor.execute("""
+            SELECT COUNT(*) AS owners
+            FROM users
+            WHERE role = 'owner'
+        """)
         owners = cursor.fetchone()["owners"]
 
-        # Total Admins
-        cursor.execute("SELECT COUNT(*) AS admins FROM users WHERE role='admin'")
+        cursor.execute("""
+            SELECT COUNT(*) AS admins
+            FROM users
+            WHERE role = 'admin'
+        """)
         admins = cursor.fetchone()["admins"]
 
-        # Total Vehicles
+        # --------------------------
+        # Vehicles
+        # --------------------------
+
         try:
-            cursor.execute("SELECT COUNT(*) AS total_vehicles FROM vehicles")
+            cursor.execute("""
+                SELECT COUNT(*) AS total_vehicles
+                FROM vehicles
+            """)
             total_vehicles = cursor.fetchone()["total_vehicles"]
-        except:
+        except Exception:
             total_vehicles = 0
 
-        # Available Vehicles
         try:
-            cursor.execute("SELECT COUNT(*) AS available FROM vehicles WHERE status='available'")
+            cursor.execute("""
+                SELECT COUNT(*) AS available
+                FROM vehicles
+                WHERE LOWER(availability_status) = 'available'
+            """)
             available = cursor.fetchone()["available"]
-        except:
+        except Exception:
             available = 0
 
-        # Booked Vehicles
         try:
-            cursor.execute("SELECT COUNT(*) AS booked FROM vehicles WHERE status='booked'")
+            cursor.execute("""
+                SELECT COUNT(*) AS booked
+                FROM vehicles
+                WHERE LOWER(availability_status) = 'booked'
+            """)
             booked = cursor.fetchone()["booked"]
-        except:
+        except Exception:
             booked = 0
 
-        # Pending Vehicle Requests
         try:
             cursor.execute("""
                 SELECT COUNT(*) AS pending_vehicle
                 FROM vehicles
-                WHERE approval_status='pending'
+                WHERE LOWER(approval_status) = 'pending'
             """)
             pending_vehicle = cursor.fetchone()["pending_vehicle"]
-        except:
+        except Exception:
             pending_vehicle = 0
 
-        # Total Bookings
+        # --------------------------
+        # Bookings
+        # --------------------------
+
         try:
-            cursor.execute("SELECT COUNT(*) AS total_bookings FROM bookings")
+            cursor.execute("""
+                SELECT COUNT(*) AS total_bookings
+                FROM bookings
+            """)
             total_bookings = cursor.fetchone()["total_bookings"]
-        except:
+        except Exception:
             total_bookings = 0
 
-        # Pending Bookings
         try:
             cursor.execute("""
                 SELECT COUNT(*) AS pending_booking
                 FROM bookings
-                WHERE booking_status='pending'
+                WHERE LOWER(booking_status) = 'pending'
             """)
             pending_booking = cursor.fetchone()["pending_booking"]
-        except:
+        except Exception:
             pending_booking = 0
 
-        # Total Revenue
+        # --------------------------
+        # Revenue
+        # --------------------------
+
         try:
             cursor.execute("""
-                SELECT IFNULL(SUM(amount),0) AS revenue
+                SELECT IFNULL(SUM(amount), 0) AS revenue
                 FROM payments
-                WHERE payment_status='completed'
+                WHERE LOWER(payment_status) = 'completed'
             """)
             revenue = cursor.fetchone()["revenue"]
-        except:
+        except Exception:
             revenue = 0
 
         cursor.close()
 
         return {
-
             "total_users": total_users,
-
             "customers": customers,
-
             "owners": owners,
-
             "admins": admins,
 
             "total_vehicles": total_vehicles,
-
             "available": available,
-
             "booked": booked,
-
             "pending_vehicle": pending_vehicle,
 
             "total_bookings": total_bookings,
-
             "pending_booking": pending_booking,
 
             "revenue": revenue
-
         }
 
+
+    # ==========================================================
+    # RECENT USERS
+    # ==========================================================
 
     @staticmethod
     def recent_users(limit=5):
@@ -120,16 +153,16 @@ class AdminModel:
         cursor = mysql.connection.cursor()
 
         cursor.execute("""
-
             SELECT
+                user_id,
                 full_name,
                 email,
                 role,
+                status,
                 created_at
             FROM users
             ORDER BY created_at DESC
             LIMIT %s
-
         """, (limit,))
 
         users = cursor.fetchall()
@@ -139,6 +172,10 @@ class AdminModel:
         return users
 
 
+    # ==========================================================
+    # RECENT BOOKINGS
+    # ==========================================================
+
     @staticmethod
     def recent_bookings(limit=5):
 
@@ -147,27 +184,25 @@ class AdminModel:
         try:
 
             cursor.execute("""
-
                 SELECT *
-
                 FROM bookings
-
                 ORDER BY booking_date DESC
-
                 LIMIT %s
-
             """, (limit,))
 
             bookings = cursor.fetchall()
 
-        except:
-
+        except Exception:
             bookings = []
 
         cursor.close()
 
         return bookings
 
+
+    # ==========================================================
+    # RECENT VEHICLES
+    # ==========================================================
 
     @staticmethod
     def recent_vehicles(limit=5):
@@ -177,40 +212,40 @@ class AdminModel:
         try:
 
             cursor.execute("""
-
                 SELECT *
-
                 FROM vehicles
-
                 ORDER BY created_at DESC
-
                 LIMIT %s
-
             """, (limit,))
 
             vehicles = cursor.fetchall()
 
-        except:
-
+        except Exception:
             vehicles = []
 
         cursor.close()
 
         return vehicles
-#  
+
+
+    # ==========================================================
+    # PENDING VEHICLES
+    # ==========================================================
+
     @staticmethod
     def get_pending_vehicles():
 
         cursor = mysql.connection.cursor()
 
         query = """
-        SELECT
-            v.*,
-            u.full_name
-        FROM vehicles v
-        JOIN users u
-        ON v.owner_id = u.user_id
-        WHERE LOWER(v.approval_status)='pending'
+            SELECT
+                v.*,
+                u.full_name
+            FROM vehicles v
+            JOIN users u
+                ON v.owner_id = u.user_id
+            WHERE LOWER(v.approval_status) = 'pending'
+            ORDER BY v.vehicle_id ASC
         """
 
         cursor.execute(query)
@@ -221,6 +256,10 @@ class AdminModel:
 
         return vehicles
 
+
+    # ==========================================================
+    # APPROVE VEHICLE
+    # ==========================================================
 
     @staticmethod
     def approve_vehicle(vehicle_id):
@@ -238,6 +277,10 @@ class AdminModel:
         cursor.close()
 
 
+    # ==========================================================
+    # REJECT VEHICLE
+    # ==========================================================
+
     @staticmethod
     def reject_vehicle(vehicle_id):
 
@@ -252,20 +295,25 @@ class AdminModel:
         mysql.connection.commit()
 
         cursor.close()
-    
+
+
+    # ==========================================================
+    # VEHICLE DETAILS
+    # ==========================================================
+
     @staticmethod
     def get_vehicle_details(vehicle_id):
 
         cursor = mysql.connection.cursor()
 
         cursor.execute("""
-        SELECT
-            v.vehicle_name,
-            u.full_name
-        FROM vehicles v
-        JOIN users u
-            ON v.owner_id = u.user_id
-        WHERE v.vehicle_id = %s
+            SELECT
+                v.vehicle_name,
+                u.full_name
+            FROM vehicles v
+            JOIN users u
+                ON v.owner_id = u.user_id
+            WHERE v.vehicle_id = %s
         """, (vehicle_id,))
 
         vehicle = cursor.fetchone()
@@ -273,77 +321,14 @@ class AdminModel:
         cursor.close()
 
         return vehicle
+
+
+    # ==========================================================
+    # ALL BOOKINGS
+    # ==========================================================
+
     @staticmethod
     def get_all_bookings():
-
-        cursor = mysql.connection.cursor()
-
-        query = """
-        SELECT
-            b.booking_id,
-            b.booking_date,
-            b.pickup_date,
-            b.return_date,
-            b.total_days,
-            b.total_amount,
-            b.booking_status,
-
-            customer.full_name AS customer_name,
-
-            owner.full_name AS owner_name,
-
-            v.vehicle_name,
-            v.vehicle_number
-
-        FROM bookings b
-
-        JOIN users customer
-            ON b.customer_id = customer.user_id
-
-        JOIN vehicles v
-            ON b.vehicle_id = v.vehicle_id
-
-        JOIN users owner
-            ON v.owner_id = owner.user_id
-
-        ORDER BY b.booking_id ASC
-        """
-
-        cursor.execute(query)
-
-        bookings = cursor.fetchall()
-
-        cursor.close()
-
-        return bookings
-    
-    @staticmethod
-    def get_booking_statistics():
-
-        cursor = mysql.connection.cursor()
-
-        query = """
-            SELECT
-                COUNT(*) AS total,
-                SUM(CASE WHEN booking_status = 'Pending' THEN 1 ELSE 0 END) AS pending,
-                SUM(CASE WHEN booking_status = 'Approved' THEN 1 ELSE 0 END) AS approved,
-                SUM(CASE WHEN booking_status = 'Rejected' THEN 1 ELSE 0 END) AS rejected,
-                SUM(CASE WHEN booking_status = 'Completed' THEN 1 ELSE 0 END) AS completed,
-                SUM(CASE WHEN booking_status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled
-            FROM bookings
-        """
-
-        cursor.execute(query)
-
-        stats = cursor.fetchone()
-
-        cursor.close()
-
-        return stats
-
-
-    @staticmethod
-    def search_bookings(search="", status=""):
 
         cursor = mysql.connection.cursor()
 
@@ -375,14 +360,130 @@ class AdminModel:
             JOIN users owner
                 ON v.owner_id = owner.user_id
 
+            ORDER BY b.booking_id ASC
+        """
+
+        cursor.execute(query)
+
+        bookings = cursor.fetchall()
+
+        cursor.close()
+
+        return bookings
+
+
+    # ==========================================================
+    # BOOKING STATISTICS
+    # ==========================================================
+
+    @staticmethod
+    def get_booking_statistics():
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                COUNT(*) AS total,
+
+                SUM(
+                    CASE
+                        WHEN LOWER(booking_status) = 'pending'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS pending,
+
+                SUM(
+                    CASE
+                        WHEN LOWER(booking_status) = 'approved'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS approved,
+
+                SUM(
+                    CASE
+                        WHEN LOWER(booking_status) = 'rejected'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS rejected,
+
+                SUM(
+                    CASE
+                        WHEN LOWER(booking_status) = 'completed'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS completed,
+
+                SUM(
+                    CASE
+                        WHEN LOWER(booking_status) = 'cancelled'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS cancelled
+
+            FROM bookings
+        """
+
+        cursor.execute(query)
+
+        stats = cursor.fetchone()
+
+        cursor.close()
+
+        return stats
+
+
+    # ==========================================================
+    # SEARCH BOOKINGS
+    # ==========================================================
+
+    @staticmethod
+    def search_bookings(search="", status=""):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                b.booking_id,
+                b.booking_date,
+                b.pickup_date,
+                b.return_date,
+                b.total_days,
+                b.total_amount,
+                b.booking_status,
+
+                customer.full_name AS customer_name,
+
+                owner.full_name AS owner_name,
+
+                v.vehicle_name,
+                v.vehicle_number
+
+            FROM bookings b
+
+            JOIN users customer
+                ON b.customer_id = customer.user_id
+
+            JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            JOIN users owner
+                ON v.owner_id = owner.user_id
+
             WHERE
-                (
-                    CAST(b.booking_id AS CHAR) LIKE %s
-                    OR customer.full_name LIKE %s
-                    OR owner.full_name LIKE %s
-                    OR v.vehicle_name LIKE %s
-                    OR v.vehicle_number LIKE %s
-                )
+            (
+                CAST(b.booking_id AS CHAR) LIKE %s
+                OR customer.full_name LIKE %s
+                OR owner.full_name LIKE %s
+                OR v.vehicle_name LIKE %s
+                OR v.vehicle_number LIKE %s
+            )
         """
 
         values = [
@@ -411,25 +512,30 @@ class AdminModel:
         cursor.close()
 
         return bookings
-    
-    
-    
+
+
+    # ==========================================================
+    # ALL USERS
+    # ==========================================================
+
     @staticmethod
     def get_all_users():
 
         cursor = mysql.connection.cursor()
 
         query = """
-        SELECT
-            user_id,
-            full_name,
-            email,
-            phone,
-            role,
-            status,
-            created_at
-        FROM users
-        ORDER BY user_id ASC
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                created_at
+
+            FROM users
+
+            ORDER BY user_id ASC
         """
 
         cursor.execute(query)
@@ -439,25 +545,35 @@ class AdminModel:
         cursor.close()
 
         return users
-    
+
+
+    # ==========================================================
+    # SEARCH USERS
+    # ==========================================================
+
     @staticmethod
     def search_users(search="", role=""):
 
         cursor = mysql.connection.cursor()
 
         query = """
-        SELECT
-            user_id,
-            full_name,
-            email,
-            phone,
-            role,
-            created_at
-        FROM users
-        WHERE
-            (full_name LIKE %s
-            OR email LIKE %s
-            OR phone LIKE %s)
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                created_at
+
+            FROM users
+
+            WHERE
+            (
+                full_name LIKE %s
+                OR email LIKE %s
+                OR phone LIKE %s
+            )
         """
 
         values = [
@@ -467,10 +583,16 @@ class AdminModel:
         ]
 
         if role:
-            query += " AND role=%s"
+
+            query += """
+                AND role = %s
+            """
+
             values.append(role)
 
-        query += " ORDER BY user_id ASC"
+        query += """
+            ORDER BY user_id ASC
+        """
 
         cursor.execute(query, values)
 
@@ -479,24 +601,47 @@ class AdminModel:
         cursor.close()
 
         return users
-    
+
+
+    # ==========================================================
+    # USER STATISTICS
+    # ==========================================================
+
     @staticmethod
     def get_user_statistics():
 
         cursor = mysql.connection.cursor()
 
         query = """
-        SELECT
+            SELECT
 
-            COUNT(*) AS total_users,
+                COUNT(*) AS total_users,
 
-            SUM(CASE WHEN role='admin' THEN 1 ELSE 0 END) AS admins,
+                SUM(
+                    CASE
+                        WHEN role = 'admin'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS admins,
 
-            SUM(CASE WHEN role='owner' THEN 1 ELSE 0 END) AS owners,
+                SUM(
+                    CASE
+                        WHEN role = 'owner'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS owners,
 
-            SUM(CASE WHEN role='customer' THEN 1 ELSE 0 END) AS customers
+                SUM(
+                    CASE
+                        WHEN role = 'customer'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS customers
 
-        FROM users
+            FROM users
         """
 
         cursor.execute(query)
@@ -506,22 +651,30 @@ class AdminModel:
         cursor.close()
 
         return stats
-    
+
+
+    # ==========================================================
+    # GET USER BY ID
+    # ==========================================================
+
     @staticmethod
     def get_user_by_id(user_id):
 
         cursor = mysql.connection.cursor()
 
         query = """
-        SELECT
-            user_id,
-            full_name,
-            email,
-            phone,
-            role,
-            created_at
-        FROM users
-        WHERE user_id = %s
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                created_at
+
+            FROM users
+
+            WHERE user_id = %s
         """
 
         cursor.execute(query, (user_id,))
@@ -531,34 +684,55 @@ class AdminModel:
         cursor.close()
 
         return user
-    
+
+
+    # ==========================================================
+    # UPDATE USER
+    # ==========================================================
+
     @staticmethod
-    def update_user(user_id, full_name, email, phone, role):
+    def update_user(
+        user_id,
+        full_name,
+        email,
+        phone,
+        role
+    ):
 
         cursor = mysql.connection.cursor()
 
         query = """
-        UPDATE users
-        SET
-            full_name=%s,
-            email=%s,
-            phone=%s,
-            role=%s
-        WHERE user_id=%s
+            UPDATE users
+
+            SET
+                full_name = %s,
+                email = %s,
+                phone = %s,
+                role = %s
+
+            WHERE user_id = %s
         """
 
-        cursor.execute(query, (
-            full_name,
-            email,
-            phone,
-            role,
-            user_id
-        ))
+        cursor.execute(
+            query,
+            (
+                full_name,
+                email,
+                phone,
+                role,
+                user_id
+            )
+        )
 
         mysql.connection.commit()
 
         cursor.close()
-        
+
+
+    # ==========================================================
+    # DEACTIVATE USER
+    # ==========================================================
+
     @staticmethod
     def deactivate_user(user_id):
 
@@ -566,14 +740,21 @@ class AdminModel:
 
         cursor.execute("""
             UPDATE users
-            SET status='Inactive'
-            WHERE user_id=%s
+
+            SET status = 'Inactive'
+
+            WHERE user_id = %s
         """, (user_id,))
 
         mysql.connection.commit()
 
         cursor.close()
-        
+
+
+    # ==========================================================
+    # ACTIVATE USER
+    # ==========================================================
+
     @staticmethod
     def activate_user(user_id):
 
@@ -581,72 +762,20 @@ class AdminModel:
 
         cursor.execute("""
             UPDATE users
-            SET status='Active'
-            WHERE user_id=%s
+
+            SET status = 'Active'
+
+            WHERE user_id = %s
         """, (user_id,))
 
         mysql.connection.commit()
 
         cursor.close()
-        
-    # ==========================================
-    # Vehicle Management
-    # ==========================================
 
-    @staticmethod
-    def get_vehicle_statistics():
 
-        cursor = mysql.connection.cursor()
-
-        # Total vehicles
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM vehicles
-        """)
-        total = cursor.fetchone()["total"]
-
-        # Available vehicles
-        cursor.execute("""
-            SELECT COUNT(*) AS available
-            FROM vehicles
-            WHERE availability_status = 'Available'
-        """)
-        available = cursor.fetchone()["available"]
-
-        # Booked vehicles
-        cursor.execute("""
-            SELECT COUNT(*) AS booked
-            FROM vehicles
-            WHERE availability_status = 'Booked'
-        """)
-        booked = cursor.fetchone()["booked"]
-
-        # Maintenance vehicles
-        cursor.execute("""
-            SELECT COUNT(*) AS maintenance
-            FROM vehicles
-            WHERE availability_status = 'Maintenance'
-        """)
-        maintenance = cursor.fetchone()["maintenance"]
-
-        # Pending approval
-        cursor.execute("""
-            SELECT COUNT(*) AS pending
-            FROM vehicles
-            WHERE approval_status = 'Pending'
-        """)
-        pending = cursor.fetchone()["pending"]
-
-        cursor.close()
-
-        return {
-            "total": total,
-            "available": available,
-            "booked": booked,
-            "maintenance": maintenance,
-            "pending": pending
-        }
-
+    # ==========================================================
+    # VEHICLE MANAGEMENT
+    # ==========================================================
 
     @staticmethod
     def get_all_vehicles():
@@ -655,176 +784,17 @@ class AdminModel:
 
         query = """
             SELECT
+
                 v.vehicle_id,
                 v.vehicle_name,
                 v.model,
                 v.vehicle_number,
                 v.rent_per_day,
+
                 v.availability_status,
                 v.approval_status,
+
                 v.image,
-                u.full_name AS owner_name,
-                vc.category_name
-
-            FROM vehicles v
-
-            JOIN users u
-                ON v.owner_id = u.user_id
-
-            JOIN vehicle_categories vc
-                ON v.category_id = vc.category_id
-
-            ORDER BY v.vehicle_id ASC
-        """
-
-        cursor.execute(query)
-
-        vehicles = cursor.fetchall()
-
-        cursor.close()
-
-        return vehicles
-    
-    @staticmethod
-    def search_vehicles(search="", category="", availability="", approval=""):
-
-        cursor = mysql.connection.cursor()
-
-        query = """
-            SELECT
-                v.vehicle_id,
-                v.vehicle_name,
-                v.model,
-                v.vehicle_number,
-                v.rent_per_day,
-                v.availability_status,
-                v.approval_status,
-                v.image,
-                v.description,
-                v.register_at,
-                v.created_at,
-
-                u.full_name AS owner_name,
-
-                vc.category_name
-
-            FROM vehicles v
-
-            JOIN users u
-                ON v.owner_id = u.user_id
-
-            JOIN vehicle_categories vc
-                ON v.category_id = vc.category_id
-
-            WHERE
-                (
-                    v.vehicle_name LIKE %s
-                    OR v.model LIKE %s
-                    OR v.vehicle_number LIKE %s
-                    OR u.full_name LIKE %s
-                )
-        """
-
-        values = [
-            f"%{search}%",
-            f"%{search}%",
-            f"%{search}%",
-            f"%{search}%"
-        ]
-
-        if category:
-            query += """
-                AND v.category_id = %s
-            """
-            values.append(category)
-
-        if availability:
-            query += """
-                AND v.availability_status = %s
-            """
-            values.append(availability)
-
-        if approval:
-            query += """
-                AND v.approval_status = %s
-            """
-            values.append(approval)
-
-        query += """
-            ORDER BY v.vehicle_id ASC
-        """
-
-        cursor.execute(query, values)
-
-        vehicles = cursor.fetchall()
-
-        cursor.close()
-
-        return vehicles
-
-
-    @staticmethod
-    def get_vehicle_by_id(vehicle_id):
-
-        cursor = mysql.connection.cursor()
-
-        query = """
-            SELECT
-                v.vehicle_id,
-                v.vehicle_name,
-                v.model,
-                v.vehicle_number,
-                v.rent_per_day,
-                v.description,
-                v.image,
-                v.availability_status,
-                v.register_at,
-                v.approval_status,
-                v.created_at,
-
-                u.user_id AS owner_id,
-                u.full_name AS owner_name,
-                u.email AS owner_email,
-                u.phone AS owner_phone,
-
-                vc.category_id,
-                vc.category_name
-
-            FROM vehicles v
-
-            JOIN users u
-                ON v.owner_id = u.user_id
-
-            JOIN vehicle_categories vc
-                ON v.category_id = vc.category_id
-
-            WHERE v.vehicle_id = %s
-        """
-
-        cursor.execute(query, (vehicle_id,))
-
-        vehicle = cursor.fetchone()
-
-        cursor.close()
-
-        return vehicle
-    
-    @staticmethod
-    def get_all_vehicles():
-
-        cursor = mysql.connection.cursor()
-
-        query = """
-            SELECT
-                v.vehicle_id,
-                v.vehicle_name,
-                v.model,
-                v.vehicle_number,
-                v.rent_per_day,
-                v.availability_status,
-                v.approval_status,
-                v.image,
-                v.created_at,
 
                 u.full_name AS owner_name,
 
@@ -848,36 +818,195 @@ class AdminModel:
         cursor.close()
 
         return vehicles
-    
-    # vehicle Statistics card 
-    
+
+
+    # ==========================================================
+    # SEARCH VEHICLES
+    # ==========================================================
+
+    @staticmethod
+    def search_vehicles(
+        search="",
+        category="",
+        availability="",
+        approval=""
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                v.vehicle_id,
+                v.vehicle_name,
+                v.model,
+                v.vehicle_number,
+                v.rent_per_day,
+
+                v.availability_status,
+                v.approval_status,
+
+                v.image,
+                v.description,
+                v.register_at,
+                v.created_at,
+
+                u.full_name AS owner_name,
+
+                vc.category_name
+
+            FROM vehicles v
+
+            LEFT JOIN users u
+                ON v.owner_id = u.user_id
+
+            LEFT JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            WHERE
+            (
+                v.vehicle_name LIKE %s
+                OR v.model LIKE %s
+                OR v.vehicle_number LIKE %s
+                OR u.full_name LIKE %s
+            )
+        """
+
+        values = [
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%"
+        ]
+
+        if category:
+
+            query += """
+                AND v.category_id = %s
+            """
+
+            values.append(category)
+
+        if availability:
+
+            query += """
+                AND v.availability_status = %s
+            """
+
+            values.append(availability)
+
+        if approval:
+
+            query += """
+                AND v.approval_status = %s
+            """
+
+            values.append(approval)
+
+        query += """
+            ORDER BY v.vehicle_id ASC
+        """
+
+        cursor.execute(query, values)
+
+        vehicles = cursor.fetchall()
+
+        cursor.close()
+
+        return vehicles
+
+
+    # ==========================================================
+    # GET VEHICLE BY ID
+    # ==========================================================
+
+    @staticmethod
+    def get_vehicle_by_id(vehicle_id):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                v.vehicle_id,
+                v.vehicle_name,
+                v.model,
+                v.vehicle_number,
+                v.rent_per_day,
+
+                v.description,
+                v.image,
+
+                v.availability_status,
+                v.register_at,
+                v.approval_status,
+                v.created_at,
+
+                u.user_id AS owner_id,
+                u.full_name AS owner_name,
+                u.email AS owner_email,
+                u.phone AS owner_phone,
+
+                vc.category_id,
+                vc.category_name
+
+            FROM vehicles v
+
+            LEFT JOIN users u
+                ON v.owner_id = u.user_id
+
+            LEFT JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            WHERE v.vehicle_id = %s
+        """
+
+        cursor.execute(query, (vehicle_id,))
+
+        vehicle = cursor.fetchone()
+
+        cursor.close()
+
+        return vehicle
+
+
+    # ==========================================================
+    # VEHICLE STATISTICS
+    # ==========================================================
+
     @staticmethod
     def get_vehicle_statistics():
 
         cursor = mysql.connection.cursor()
 
-        # Total Vehicles
+        # Total
         cursor.execute("""
             SELECT COUNT(*) AS total_vehicles
             FROM vehicles
         """)
+
         total_vehicles = cursor.fetchone()["total_vehicles"]
 
-        # Available Vehicles
+
+        # Available
         cursor.execute("""
             SELECT COUNT(*) AS available
             FROM vehicles
             WHERE LOWER(availability_status) = 'available'
         """)
+
         available = cursor.fetchone()["available"]
 
-        # Booked Vehicles
+
+        # Booked
         cursor.execute("""
             SELECT COUNT(*) AS booked
             FROM vehicles
             WHERE LOWER(availability_status) = 'booked'
         """)
+
         booked = cursor.fetchone()["booked"]
+
 
         # Pending Approval
         cursor.execute("""
@@ -885,7 +1014,29 @@ class AdminModel:
             FROM vehicles
             WHERE LOWER(approval_status) = 'pending'
         """)
+
         pending = cursor.fetchone()["pending"]
+
+
+        # Approved
+        cursor.execute("""
+            SELECT COUNT(*) AS approved
+            FROM vehicles
+            WHERE LOWER(approval_status) = 'approved'
+        """)
+
+        approved = cursor.fetchone()["approved"]
+
+
+        # Rejected
+        cursor.execute("""
+            SELECT COUNT(*) AS rejected
+            FROM vehicles
+            WHERE LOWER(approval_status) = 'rejected'
+        """)
+
+        rejected = cursor.fetchone()["rejected"]
+
 
         cursor.close()
 
@@ -893,5 +1044,71 @@ class AdminModel:
             "total_vehicles": total_vehicles,
             "available": available,
             "booked": booked,
-            "pending": pending
+            "pending": pending,
+            "approved": approved,
+            "rejected": rejected
         }
+        
+            # ==========================================================
+    # ADMIN PROFILE
+    # ==========================================================
+
+    @staticmethod
+    def get_admin_profile(user_id):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                created_at
+            FROM users
+            WHERE user_id = %s
+              AND role = 'admin'
+        """
+
+        cursor.execute(query, (user_id,))
+
+        admin = cursor.fetchone()
+
+        cursor.close()
+
+        return admin
+    
+    @staticmethod
+    def update_profile_picture(user_id, filename):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            UPDATE users
+            SET profile_picture = %s
+            WHERE user_id = %s
+              AND role = 'admin'
+        """, (filename, user_id))
+
+        mysql.connection.commit()
+
+        cursor.close()
+
+
+    @staticmethod
+    def remove_profile_picture(user_id):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            UPDATE users
+            SET profile_picture = NULL
+            WHERE user_id = %s
+              AND role = 'admin'
+        """, (user_id,))
+
+        mysql.connection.commit()
+
+        cursor.close()

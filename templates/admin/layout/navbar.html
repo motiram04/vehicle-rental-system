@@ -6,30 +6,56 @@
 
     </h1>
 
-    <div class="flex items-center space-x-4">
+    <!-- Admin Profile Header -->
+<div class="flex items-center gap-4">
 
-        <i class="fa-solid fa-bell text-xl"></i>
+    <!-- Profile -->
+    <a href="{{ url_for('admin.profile') }}"
+       class="flex items-center gap-3 px-3 py-2 rounded-lg
+              hover:bg-gray-100 transition duration-200">
 
-        <img
-        src="{{ session.get('profile_image') if session.get('profile_image') else url_for('static', filename='images/default-profile.png') }}"
-        class="w-10 h-10 rounded-full object-cover">
+        <!-- Profile Picture -->
+        {% if current_admin and current_admin.profile_picture %}
 
-        <div>
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='uploads/profile/' ~ current_admin.profile_picture
+                ) }}"
+                alt="Profile Picture"
+                class="w-10 h-10 rounded-full object-cover
+                       border-2 border-blue-500"
+            >
 
-            <h3 class="font-semibold">
+        {% else %}
 
-                {{ session.get("full_name") }}
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/download.jpg'
+                ) }}"
+                alt="Default Profile"
+                class="w-10 h-10 rounded-full object-cover
+                       border-2 border-gray-300"
+            >
 
-            </h3>
+        {% endif %}
 
-            <small>
+        <!-- Admin Information -->
+        <div class="leading-tight">
 
-                {{ session.get("role") }}
+            <p class="font-semibold text-gray-800">
+                {{ current_admin.full_name if current_admin else 'System Administrator' }}
+            </p>
 
-            </small>
+            <p class="text-xs text-gray-500">
+                {{ current_admin.role if current_admin else 'admin' }}
+            </p>
 
         </div>
 
-    </div>
+    </a>
+
+</div>
 
 </nav>

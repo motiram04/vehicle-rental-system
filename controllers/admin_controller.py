@@ -5,6 +5,9 @@ from flask import session
 from flask import redirect
 from flask import url_for
 from flask import request
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 from database.db import mysql
 
@@ -41,6 +44,10 @@ def dashboard():
 
     stats = AdminModel.get_dashboard_statistics()
 
+    booking_stats = AdminModel.get_booking_statistics()
+
+    vehicle_stats = AdminModel.get_vehicle_statistics()
+
     recent_users = AdminModel.recent_users()
 
     recent_bookings = AdminModel.recent_bookings()
@@ -67,14 +74,143 @@ def dashboard():
 
         revenue=stats["revenue"],
 
+        booking_stats=booking_stats,
+        vehicle_stats=vehicle_stats,
+
         recent_users=recent_users,
         recent_bookings=recent_bookings,
         recent_vehicles=recent_vehicles
 
     )
+    
+    # ==========================================================
+# ADMIN PROFILE
+# ==========================================================
 
+@admin.route("/admin/profile")
+def profile():
 
-# --------------------------------------------
+    check = admin_required()
+
+    if check:
+        return check
+
+    user_id = session.get("user_id")
+
+    admin_user = AdminModel.get_admin_profile(user_id)
+
+    if not admin_user:
+
+        flash("Admin profile not found.", "danger")
+
+        return redirect(url_for("admin.dashboard"))
+
+    return render_template(
+        "admin/profile.html",
+        admin=admin_user
+    )
+    
+    
+@admin.route("/admin/profile/upload-picture", methods=["POST"])
+def upload_profile_picture():
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    user_id = session.get("user_id")
+
+    if "profile_picture" not in request.files:
+        flash("No image selected.", "danger")
+        return redirect(url_for("admin.profile"))
+
+    file = request.files["profile_picture"]
+
+    if file.filename == "":
+        flash("Please select an image.", "danger")
+        return redirect(url_for("admin.profile"))
+
+    allowed_extensions = {"png", "jpg", "jpeg", "webp"}
+
+    original_filename = secure_filename(file.filename)
+
+    extension = original_filename.rsplit(".", 1)[-1].lower()
+
+    if extension not in allowed_extensions:
+        flash(
+            "Only JPG, JPEG, PNG and WEBP images are allowed.",
+            "danger"
+        )
+        return redirect(url_for("admin.profile"))
+
+    # Absolute upload path
+    upload_folder = os.path.join(
+        admin.root_path,
+        "..",
+        "static",
+        "uploads",
+        "profile"
+    )
+
+    upload_folder = os.path.abspath(upload_folder)
+
+    os.makedirs(upload_folder, exist_ok=True)
+
+    # Unique filename
+    new_filename = f"{uuid.uuid4().hex}.{extension}"
+
+    file_path = os.path.join(
+        upload_folder,
+        new_filename
+    )
+
+    # Save image
+    file.save(file_path)
+
+    # Verify file actually exists
+    if not os.path.exists(file_path):
+
+        flash(
+            "Image could not be saved.",
+            "danger"
+        )
+
+        return redirect(url_for("admin.profile"))
+
+    # Update database
+    AdminModel.update_profile_picture(
+        user_id,
+        new_filename
+    )
+
+    flash(
+        "Profile picture updated successfully.",
+        "success"
+    )
+
+    return redirect(url_for("admin.profile"))
+
+@admin.route("/admin/profile/remove-picture", methods=["POST"])
+def remove_profile_picture():
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    user_id = session.get("user_id")
+
+    AdminModel.remove_profile_picture(user_id)
+
+    flash(
+        "Profile picture removed successfully.",
+        "success"
+    )
+
+    return redirect(url_for("admin.profile"))
+    
+    # --------------------------------------------
 # User Management
 # --------------------------------------------
 @admin.route("/admin/users")
@@ -406,3 +542,34 @@ def reject_vehicle(vehicle_id):
     )
 
     return redirect(url_for("admin.pending_vehicles"))
+
+
+# Vehicle Activation/Deactivation
+@admin.route("/admin/vehicle/deactivate/<int:vehicle_id>")
+def deactivate_vehicle(vehicle_id):
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    AdminModel.deactivate_vehicle(vehicle_id)
+
+    flash("Vehicle deactivated successfully.", "success")
+
+    return redirect(url_for("admin.vehicles"))
+
+@admin.route("/admin/vehicle/activate/<int:vehicle_id>")
+def activate_vehicle(vehicle_id):
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    AdminModel.activate_vehicle(vehicle_id)
+
+    flash("Vehicle activated successfully.", "success")
+
+    return redirect(url_for("admin.vehicles"))
+

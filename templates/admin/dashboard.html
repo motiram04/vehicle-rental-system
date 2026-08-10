@@ -1,69 +1,595 @@
 {% extends "admin/layout/base.html" %}
 
-{% block title %}
-
-Dashboard
-
-{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
 
-<h2 class="text-3xl font-bold mb-6">
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
 
-Dashboard
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">
+            Admin Dashboard
+        </h1>
 
-</h2>
-
-<div class="grid grid-cols-4 gap-6">
-
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <h3>Total Users</h3>
-
-        <p class="text-4xl font-bold">
-
-            {{ total_users }}
-
+        <p class="text-gray-500 mt-1">
+            Welcome back, Admin 👋 Here's what's happening in your rental system.
         </p>
+    </div>
+
+    <div class="mt-4 md:mt-0">
+        <a href="{{ url_for('admin.users') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow transition">
+            Manage Users →
+        </a>
+    </div>
+
+</div>
+
+
+<!-- ================= STATISTICS CARDS ================= -->
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+
+    <!-- Users -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6
+                hover:shadow-lg transition">
+
+        <div class="flex items-center justify-between">
+
+            <div>
+                <p class="text-gray-500 text-sm font-medium">
+                    Total Users
+                </p>
+
+                <h2 class="text-3xl font-bold text-gray-800 mt-2">
+                    {{ total_users }}
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    👥
+                    {{ customers }} Customers
+                    ·
+                    {{ owners }} Owners
+                </p>
+            </div>
+
+            <div class="bg-blue-100 text-blue-600 w-14 h-14 rounded-xl
+                        flex items-center justify-center text-2xl">
+                👥
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('admin.users') }}"
+           class="inline-block text-blue-600 text-sm font-medium mt-5 hover:underline">
+            View Users →
+        </a>
 
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
 
-        <h3>Total Vehicles</h3>
+    <!-- Vehicles -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6
+                hover:shadow-lg transition">
 
-        <p class="text-4xl font-bold">
+        <div class="flex items-center justify-between">
 
-            {{ total_vehicles }}
+            <div>
+                <p class="text-gray-500 text-sm font-medium">
+                    Total Vehicles
+                </p>
 
-        </p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-2">
+                    {{ total_vehicles }}
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    🟢 {{ available }} Available
+                    ·
+                    🔴 {{ booked }} Booked
+                </p>
+            </div>
+
+            <div class="bg-green-100 text-green-600 w-14 h-14 rounded-xl
+                        flex items-center justify-center text-2xl">
+                🚗
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('admin.vehicles') }}"
+           class="inline-block text-green-600 text-sm font-medium mt-5 hover:underline">
+            Manage Vehicles →
+        </a>
 
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
 
-        <h3>Bookings</h3>
+    <!-- Bookings -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6
+                hover:shadow-lg transition">
 
-        <p class="text-4xl font-bold">
+        <div class="flex items-center justify-between">
 
-            {{ total_bookings }}
+            <div>
+                <p class="text-gray-500 text-sm font-medium">
+                    Total Bookings
+                </p>
 
-        </p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-2">
+                    {{ total_bookings }}
+                </h2>
+
+                <p class="text-sm text-yellow-600 mt-2 font-medium">
+                    ⏳ {{ pending_booking }} Pending
+                </p>
+            </div>
+
+            <div class="bg-yellow-100 text-yellow-600 w-14 h-14 rounded-xl
+                        flex items-center justify-center text-2xl">
+                📅
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('admin.bookings') }}"
+           class="inline-block text-yellow-600 text-sm font-medium mt-5 hover:underline">
+            View Bookings →
+        </a>
 
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
 
-        <h3>Revenue</h3>
+    <!-- Revenue -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6
+                hover:shadow-lg transition">
 
-        <p class="text-4xl font-bold">
+        <div class="flex items-center justify-between">
 
-            Rs. {{ revenue }}
+            <div>
+                <p class="text-gray-500 text-sm font-medium">
+                    Total Revenue
+                </p>
 
-        </p>
+                <h2 class="text-3xl font-bold text-gray-800 mt-2">
+                    Rs. {{ revenue }}
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    💰 Completed Payments
+                </p>
+            </div>
+
+            <div class="bg-purple-100 text-purple-600 w-14 h-14 rounded-xl
+                        flex items-center justify-center text-2xl">
+                💰
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('admin.payments') }}"
+           class="inline-block text-purple-600 text-sm font-medium mt-5 hover:underline">
+            View Payments →
+        </a>
 
     </div>
 
 </div>
 
+
+<!-- ================= PENDING ACTIONS ================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+
+    <div class="flex items-center justify-between mb-5">
+
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">
+                ⚠️ Pending Actions
+            </h2>
+
+            <p class="text-gray-500 text-sm mt-1">
+                Items that may require your attention.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+        <!-- Pending Vehicles -->
+        <div class="border border-orange-200 bg-orange-50 rounded-xl p-5">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h3 class="font-semibold text-gray-800">
+                        Vehicle Approval Requests
+                    </h3>
+
+                    <p class="text-gray-500 text-sm mt-1">
+                        {{ pending_vehicle }} vehicle request(s) waiting for approval.
+                    </p>
+
+                </div>
+
+                <span class="bg-orange-500 text-white text-lg font-bold
+                             w-10 h-10 rounded-full flex items-center justify-center">
+                    {{ pending_vehicle }}
+                </span>
+
+            </div>
+
+            <a href="{{ url_for('admin.pending_vehicles') }}"
+               class="inline-block mt-4 bg-orange-500 hover:bg-orange-600
+                      text-white px-4 py-2 rounded-lg text-sm transition">
+                Review Vehicles →
+            </a>
+
+        </div>
+
+
+        <!-- Pending Bookings -->
+        <div class="border border-yellow-200 bg-yellow-50 rounded-xl p-5">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h3 class="font-semibold text-gray-800">
+                        Booking Requests
+                    </h3>
+
+                    <p class="text-gray-500 text-sm mt-1">
+                        {{ pending_booking }} booking(s) currently pending.
+                    </p>
+
+                </div>
+
+                <span class="bg-yellow-500 text-white text-lg font-bold
+                             w-10 h-10 rounded-full flex items-center justify-center">
+                    {{ pending_booking }}
+                </span>
+
+            </div>
+
+            <a href="{{ url_for('admin.bookings') }}"
+               class="inline-block mt-4 bg-yellow-500 hover:bg-yellow-600
+                      text-white px-4 py-2 rounded-lg text-sm transition">
+                View Bookings →
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= RECENT BOOKINGS ================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
+
+    <div class="flex items-center justify-between p-6 border-b">
+
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">
+                📅 Recent Bookings
+            </h2>
+
+            <p class="text-gray-500 text-sm mt-1">
+                Latest booking activity.
+            </p>
+        </div>
+
+        <a href="{{ url_for('admin.bookings') }}"
+           class="text-blue-600 hover:underline text-sm font-medium">
+            View All →
+        </a>
+
+    </div>
+
+
+    <div class="overflow-x-auto">
+
+        <table class="min-w-full">
+
+            <thead class="bg-gray-50">
+
+                <tr>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                        Booking ID
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                        Status
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                        Booking Date
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for booking in recent_bookings %}
+
+                <tr class="border-t hover:bg-gray-50">
+
+                    <td class="px-6 py-4 font-medium">
+                        #{{ booking.booking_id }}
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                        {% if booking.booking_status|lower == "approved" %}
+
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                            Approved
+                        </span>
+
+                        {% elif booking.booking_status|lower == "pending" %}
+
+                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                            Pending
+                        </span>
+
+                        {% elif booking.booking_status|lower == "rejected" %}
+
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                            Rejected
+                        </span>
+
+                        {% else %}
+
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                            {{ booking.booking_status }}
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td class="px-6 py-4 text-gray-500">
+                        {{ booking.booking_date }}
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                        No bookings found.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ================= RECENT USERS + VEHICLES ================= -->
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+
+    <!-- Recent Users -->
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+        <div class="flex items-center justify-between p-6 border-b">
+
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">
+                    👥 Recent Users
+                </h2>
+
+                <p class="text-gray-500 text-sm mt-1">
+                    Newly registered users.
+                </p>
+            </div>
+
+            <a href="{{ url_for('admin.users') }}"
+               class="text-blue-600 hover:underline text-sm font-medium">
+                View All →
+            </a>
+
+        </div>
+
+
+        <div class="divide-y">
+
+            {% for user in recent_users %}
+
+            <div class="p-5 flex items-center justify-between hover:bg-gray-50">
+
+                <div>
+
+                    <p class="font-semibold text-gray-800">
+                        {{ user.full_name }}
+                    </p>
+
+                    <p class="text-sm text-gray-500">
+                        {{ user.email }}
+                    </p>
+
+                </div>
+
+                <span class="px-3 py-1 rounded-full text-xs font-medium
+                    {% if user.role == 'admin' %}
+                        bg-red-100 text-red-700
+                    {% elif user.role == 'owner' %}
+                        bg-blue-100 text-blue-700
+                    {% else %}
+                        bg-green-100 text-green-700
+                    {% endif %}
+                ">
+
+                    {{ user.role|capitalize }}
+
+                </span>
+
+            </div>
+
+            {% else %}
+
+            <div class="p-6 text-center text-gray-500">
+                No users found.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Recent Vehicles -->
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+        <div class="flex items-center justify-between p-6 border-b">
+
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">
+                    🚗 Recent Vehicles
+                </h2>
+
+                <p class="text-gray-500 text-sm mt-1">
+                    Recently added vehicles.
+                </p>
+
+            </div>
+
+            <a href="{{ url_for('admin.vehicles') }}"
+               class="text-blue-600 hover:underline text-sm font-medium">
+                View All →
+            </a>
+
+        </div>
+
+
+        <div class="divide-y">
+
+            {% for vehicle in recent_vehicles %}
+
+            <div class="p-5 flex items-center justify-between hover:bg-gray-50">
+
+                <div>
+
+                    <p class="font-semibold text-gray-800">
+                        {{ vehicle.vehicle_name }}
+                    </p>
+
+                    <p class="text-sm text-gray-500">
+                        Vehicle ID: #{{ vehicle.vehicle_id }}
+                    </p>
+
+                </div>
+
+                <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs">
+                    {{ vehicle.approval_status }}
+                </span>
+
+            </div>
+
+            {% else %}
+
+            <div class="p-6 text-center text-gray-500">
+                No vehicles found.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= ANALYTICS ================= -->
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-8">
+
+    <!-- Booking Analytics -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+
+        <div class="mb-5">
+            <h2 class="text-xl font-bold text-gray-800">
+                📊 Booking Analytics
+            </h2>
+
+            <p class="text-gray-500 text-sm mt-1">
+                Current booking status distribution
+            </p>
+        </div>
+
+        <div class="h-80">
+            <canvas id="bookingChart"></canvas>
+        </div>
+
+    </div>
+
+
+    <!-- Vehicle Analytics -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+
+        <div class="mb-5">
+            <h2 class="text-xl font-bold text-gray-800">
+                🚗 Vehicle Analytics
+            </h2>
+
+            <p class="text-gray-500 text-sm mt-1">
+                Current vehicle availability and approval status
+            </p>
+        </div>
+
+        <div class="h-80">
+            <canvas id="vehicleChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    window.bookingStats = {
+        approved: Number({{ booking_stats | tojson | safe }}.approved or 0),
+        pending: Number({{ booking_stats | tojson | safe }}.pending or 0),
+        rejected: Number({{ booking_stats | tojson | safe }}.rejected or 0)
+    };
+
+
+    window.vehicleStats = {
+        available: Number({{ vehicle_stats | tojson | safe }}.available or 0),
+        booked: Number({{ vehicle_stats | tojson | safe }}.booked or 0),
+        pending: Number({{ vehicle_stats | tojson | safe }}.pending or 0),
+        approved: Number({{ vehicle_stats | tojson | safe }}.approved or 0)
+    };
+
+</script>
+
+
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
 {% endblock %}

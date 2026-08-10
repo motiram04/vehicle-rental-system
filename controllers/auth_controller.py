@@ -92,7 +92,7 @@ def login_post():
     session["full_name"] = user["full_name"]
     session["email"] = user["email"]
     session["role"] = user["role"]
-    session["profile_image"] = user["profile_image"]
+    session["profile_picture"] = user["profile_picture"]
 
     if user["role"] == "admin":
 

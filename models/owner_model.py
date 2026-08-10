@@ -117,6 +117,7 @@ class OwnerModel:
     # ============================================
     # Dashboard Statistics
     # ============================================
+ 
     @staticmethod
     def dashboard_statistics(owner_id):
 
@@ -124,65 +125,100 @@ class OwnerModel:
 
         stats = {}
 
+        # -----------------------------------------
         # Total Vehicles
+        # -----------------------------------------
         cursor.execute("""
-
             SELECT COUNT(*) AS total
-
             FROM vehicles
-
             WHERE owner_id=%s
-
         """, (owner_id,))
 
         stats["total_vehicles"] = cursor.fetchone()["total"]
 
-        # Approved
+        # -----------------------------------------
+        # Approved Vehicles
+        # -----------------------------------------
         cursor.execute("""
-
             SELECT COUNT(*) AS total
-
             FROM vehicles
-
             WHERE owner_id=%s
             AND approval_status='Approved'
-
         """, (owner_id,))
 
         stats["approved_vehicles"] = cursor.fetchone()["total"]
 
-        # Pending
+        # -----------------------------------------
+        # Pending Vehicles
+        # -----------------------------------------
         cursor.execute("""
-
             SELECT COUNT(*) AS total
-
             FROM vehicles
-
             WHERE owner_id=%s
             AND approval_status='Pending'
-
         """, (owner_id,))
 
         stats["pending_vehicles"] = cursor.fetchone()["total"]
 
-        # Rejected
+        # -----------------------------------------
+        # Rejected Vehicles
+        # -----------------------------------------
         cursor.execute("""
-
             SELECT COUNT(*) AS total
-
             FROM vehicles
-
             WHERE owner_id=%s
             AND approval_status='Rejected'
-
         """, (owner_id,))
 
         stats["rejected_vehicles"] = cursor.fetchone()["total"]
 
+        # -----------------------------------------
+        # Total Bookings
+        # -----------------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM bookings b
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+            WHERE v.owner_id=%s
+        """, (owner_id,))
+
+        stats["total_bookings"] = cursor.fetchone()["total"]
+
+        # -----------------------------------------
+        # Pending Bookings
+        # -----------------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM bookings b
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+            WHERE v.owner_id=%s
+            AND b.booking_status='Pending'
+        """, (owner_id,))
+
+        stats["pending_bookings"] = cursor.fetchone()["total"]
+
+        # -----------------------------------------
+        # Total Earnings
+        # Only COMPLETED bookings are counted
+        # -----------------------------------------
+        cursor.execute("""
+            SELECT COALESCE(SUM(b.total_amount), 0) AS total
+            FROM bookings b
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+            WHERE v.owner_id=%s
+            AND b.booking_status='Completed'
+        """, (owner_id,))
+
+        earnings = cursor.fetchone()["total"]
+
+        stats["total_earnings"] = earnings or 0
+
         cursor.close()
 
         return stats
-
 
     # ============================================
     # Recent Vehicles
@@ -361,3 +397,95 @@ class OwnerModel:
             True,
             f"{booking['vehicle_name']} booking for {booking['full_name']} has been rejected."
         )
+        
+        
+        # =====================================================
+# OWNER PROFILE
+# =====================================================
+
+    @staticmethod
+    def get_owner_profile(owner_id):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                profile_picture,
+                created_at
+            FROM users
+            WHERE user_id=%s
+            AND role='owner'
+        """, (owner_id,))
+
+        owner = cursor.fetchone()
+
+        cursor.close()
+
+        return owner
+
+
+    # =====================================================
+    # UPDATE OWNER PROFILE
+    # =====================================================
+
+    @staticmethod
+    def update_owner_profile(owner_id, full_name, email, phone, status):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            UPDATE users
+            SET
+                full_name=%s,
+                email=%s,
+                phone=%s,
+                status=%s
+            WHERE user_id=%s
+            AND role='owner'
+        """, (
+            full_name,
+            email,
+            phone,
+            status,
+            owner_id
+        ))
+
+        mysql.connection.commit()
+
+        cursor.close()
+
+
+    # =====================================================
+    # UPDATE OWNER PROFILE PICTURE
+    # =====================================================
+
+    @staticmethod
+    def update_owner_profile_picture(owner_id, profile_picture):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            UPDATE users
+            SET profile_picture=%s
+            WHERE user_id=%s
+            AND role='owner'
+        """, (
+            profile_picture,
+            owner_id
+        ))
+
+        mysql.connection.commit()
+
+        cursor.close()
+        
+        
+        
+   
+            
+   

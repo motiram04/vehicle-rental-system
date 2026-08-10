@@ -36,15 +36,13 @@ def owner_required():
 
     return None
 
-
 # ==========================================
 # Dashboard
 # ==========================================
 
+
 @owner.route("/dashboard")
 def dashboard():
-    
-   
 
     check = owner_required()
 
@@ -53,29 +51,93 @@ def dashboard():
 
     owner_id = session["user_id"]
 
+    # Get logged-in owner profile
+    owner_data = OwnerModel.get_owner_profile(owner_id)
+
+    if not owner_data:
+        flash("Owner profile not found.", "danger")
+        return redirect(url_for("auth.login"))
+
+    # Get dashboard statistics
     stats = OwnerModel.dashboard_statistics(owner_id)
 
+    # Get recent vehicles
     recent_vehicles = OwnerModel.recent_vehicles(owner_id)
-     
+
+    # Get owner booking requests
+    all_bookings = OwnerModel.get_booking_requests(owner_id)
+
+    # Show only latest 5 bookings
+    recent_bookings = all_bookings[:5]
 
     return render_template(
-
         "owner/dashboard.html",
 
+        # Owner information
+        owner=owner_data,
+
+        # Vehicle statistics
         total_vehicles=stats["total_vehicles"],
         approved_vehicles=stats["approved_vehicles"],
         pending_vehicles=stats["pending_vehicles"],
         rejected_vehicles=stats["rejected_vehicles"],
 
-        total_bookings=0,
-        total_earnings=0,
+        # Booking statistics
+        total_bookings=stats["total_bookings"],
+        pending_bookings=stats["pending_bookings"],
 
+        # Earnings
+        total_earnings=stats["total_earnings"],
+
+        # Recent data
         recent_vehicles=recent_vehicles,
-
-        recent_bookings=[]
-
+        recent_bookings=recent_bookings
     )
-    
+
+
+
+# @owner.route("/dashboard")
+# def dashboard():
+
+#     check = owner_required()
+
+#     if check:
+#         return check
+
+#     owner_id = session["user_id"]
+
+#     # Get dashboard statistics
+#     stats = OwnerModel.dashboard_statistics(owner_id)
+
+#     # Get recent vehicles
+#     recent_vehicles = OwnerModel.recent_vehicles(owner_id)
+
+#     # Get owner booking requests
+#     all_bookings = OwnerModel.get_booking_requests(owner_id)
+
+#     # Show only latest 5 bookings
+#     recent_bookings = all_bookings[:5]
+
+#     return render_template(
+#         "owner/dashboard.html",
+
+#         # Vehicle statistics
+#         total_vehicles=stats["total_vehicles"],
+#         approved_vehicles=stats["approved_vehicles"],
+#         pending_vehicles=stats["pending_vehicles"],
+#         rejected_vehicles=stats["rejected_vehicles"],
+
+#         # Booking statistics
+#         total_bookings=stats["total_bookings"],
+#         pending_bookings=stats["pending_bookings"],
+
+#         # Earnings
+#         total_earnings=stats["total_earnings"],
+
+#         # Recent data
+#         recent_vehicles=recent_vehicles,
+#         recent_bookings=recent_bookings
+#     )
 
 # ==========================================
 # My Vehicles
@@ -177,11 +239,7 @@ def add_vehicle():
     )
 
 
-# ==========================================
-# Bookings
-    # # ==========================================
 
-    # # ==========================================
 # Bookings
 # ==========================================
 
@@ -211,20 +269,337 @@ def earnings():
     return render_template("owner/earnings.html")
 
 
+
 # ==========================================
-# Profile
+# Owner Profile
 # ==========================================
 
-@owner.route("/profile")
+@owner.route("/profile", methods=["GET", "POST"])
 def profile():
 
+    # Check whether the logged-in user is an owner
     check = owner_required()
 
     if check:
         return check
 
-    return render_template("owner/profile.html")
+    # Get logged-in owner's ID
+    owner_id = session["user_id"]
 
+    # ==========================================================
+    # UPDATE PROFILE
+    # ==========================================================
+
+    if request.method == "POST":
+
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone", "").strip()
+
+        # Get account status from the form
+        status = request.form.get("status", "").strip()
+
+        # ------------------------------------------------------
+        # Validate required fields
+        # ------------------------------------------------------
+
+        if not full_name or not email:
+
+            flash(
+                "Full name and email are required.",
+                "danger"
+            )
+
+            return redirect(url_for("owner.profile"))
+
+        # ------------------------------------------------------
+        # Validate status
+        # ------------------------------------------------------
+
+        if status not in ["Active", "Inactive"]:
+
+            flash(
+                "Invalid account status.",
+                "danger"
+            )
+
+            return redirect(url_for("owner.profile"))
+
+        # ------------------------------------------------------
+        # Update owner profile
+        # ------------------------------------------------------
+
+        OwnerModel.update_owner_profile(
+            owner_id,
+            full_name,
+            email,
+            phone,
+            status
+        )
+
+        flash(
+            "Profile updated successfully.",
+            "success"
+        )
+
+        return redirect(url_for("owner.profile"))
+
+    # ==========================================================
+    # LOAD OWNER PROFILE
+    # ==========================================================
+
+    owner = OwnerModel.get_owner_profile(owner_id)
+
+    if not owner:
+
+        flash(
+            "Owner profile not found.",
+            "danger"
+        )
+
+        return redirect(url_for("owner.dashboard"))
+
+    # ==========================================================
+    # RENDER PROFILE PAGE
+    # ==========================================================
+
+    return render_template(
+        "owner/profile.html",
+        owner=owner
+    )
+    
+    # ==========================================
+# Change Owner Profile Picture
+# ==========================================
+
+@owner.route("/profile/upload-picture", methods=["POST"])
+def upload_profile_picture():
+
+    # Check whether the logged-in user is an owner
+    check = owner_required()
+
+    if check:
+        return check
+
+    # Get logged-in owner ID
+    owner_id = session["user_id"]
+
+    # Get uploaded image
+    image = request.files.get("profile_picture")
+
+    if not image or image.filename == "":
+
+        flash(
+            "Please select an image.",
+            "danger"
+        )
+
+        return redirect(url_for("owner.profile"))
+
+    # ==========================================
+    # Allowed extensions
+    # ==========================================
+
+    allowed_extensions = {
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp"
+    }
+
+    original_name = image.filename
+
+    if "." not in original_name:
+
+        flash(
+            "Invalid image file.",
+            "danger"
+        )
+
+        return redirect(url_for("owner.profile"))
+
+    extension = original_name.rsplit(
+        ".",
+        1
+    )[1].lower()
+
+    if extension not in allowed_extensions:
+
+        flash(
+            "Only PNG, JPG, JPEG, GIF and WEBP images are allowed.",
+            "danger"
+        )
+
+        return redirect(url_for("owner.profile"))
+
+    # ==========================================
+    # Upload folder
+    # ==========================================
+
+    upload_folder = os.path.join(
+        current_app.root_path,
+        "static",
+        "uploads",
+        "profiles"
+    )
+
+    os.makedirs(
+        upload_folder,
+        exist_ok=True
+    )
+
+    # ==========================================
+    # Get old profile picture
+    # ==========================================
+
+    old_owner = OwnerModel.get_owner_profile(owner_id)
+
+    old_picture = None
+
+    if old_owner:
+        old_picture = old_owner.get("profile_picture")
+
+    # ==========================================
+    # Generate new filename
+    # ==========================================
+
+    filename = secure_filename(
+        f"owner_{owner_id}.{extension}"
+    )
+
+    file_path = os.path.join(
+        upload_folder,
+        filename
+    )
+
+    # ==========================================
+    # Delete old picture if extension changed
+    # ==========================================
+
+    if old_picture and old_picture != filename:
+
+        old_path = os.path.join(
+            upload_folder,
+            old_picture
+        )
+
+        if os.path.exists(old_path):
+
+            os.remove(old_path)
+
+    # ==========================================
+    # Save new image
+    # ==========================================
+
+    image.save(file_path)
+
+    # ==========================================
+    # Update database
+    # ==========================================
+
+    OwnerModel.update_owner_profile_picture(
+        owner_id,
+        filename
+    )
+
+    flash(
+        "Profile picture updated successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for("owner.profile")
+    )
+
+# ==========================================
+# Change Owner Profile Picture
+# ==========================================
+
+# @owner.route("/profile/upload-picture", methods=["POST"])
+# def upload_profile_picture():
+
+#     check = owner_required()
+
+#     if check:
+#         return check
+
+#     owner_id = session["user_id"]
+
+#     image = request.files.get("profile_picture")
+
+#     if not image or image.filename == "":
+
+#         flash(
+#             "Please select an image.",
+#             "danger"
+#         )
+
+#         return redirect(url_for("owner.profile"))
+
+#     # Allowed image extensions
+#     allowed_extensions = {
+#         "png",
+#         "jpg",
+#         "jpeg",
+#         "gif",
+#         "webp"
+#     }
+
+#     original_name = image.filename
+
+#     extension = (
+#         original_name.rsplit(".", 1)[1].lower()
+#         if "." in original_name
+#         else ""
+#     )
+
+#     if extension not in allowed_extensions:
+
+#         flash(
+#             "Only PNG, JPG, JPEG, GIF and WEBP images are allowed.",
+#             "danger"
+#         )
+
+#         return redirect(url_for("owner.profile"))
+
+#     filename = secure_filename(
+#         f"owner_{owner_id}.{extension}"
+#     )
+
+#     upload_folder = os.path.join(
+#         current_app.root_path,
+#         "static",
+#         "uploads",
+#         "profiles"
+#     )
+
+#     os.makedirs(
+#         upload_folder,
+#         exist_ok=True
+#     )
+
+#     image.save(
+#         os.path.join(
+#             upload_folder,
+#             filename
+#         )
+#     )
+
+#     OwnerModel.update_owner_profile_picture(
+#         owner_id,
+#         filename
+#     )
+
+#     flash(
+#         "Profile picture updated successfully.",
+#         "success"
+#     )
+
+#     return redirect(
+#         url_for("owner.profile")
+#     )
+       
 
 # ==========================================
 # Settings

@@ -40,27 +40,23 @@
 
         <div class="flex items-center">
 
-            <img src="{{ url_for('static', filename='images/default-user.png') }}"
-                 class="w-12 h-12 rounded-full border-2 border-blue-500">
+            {% if owner is defined and owner and owner.profile_picture %}
 
-            <div class="ml-3">
+            <img src="{{ url_for('static',
+             filename='uploads/profiles/' ~ owner.profile_picture) }}" alt="{{ owner.full_name }}" 
+             class="w-12 h-12 rounded-full object-cover
+               border-2 border-white shadow">
 
-                <h4 class="font-semibold">
+            {% else %}
 
-                    {{ session.get('full_name','Vehicle Owner') }}
+            <div class="w-12 h-12 rounded-full
+                bg-blue-100
+                flex items-center justify-center">
 
-                </h4>
-
-                <p class="text-sm text-gray-500">
-
-                    Owner
-
-                </p>
+                <i class="fa-solid fa-user text-blue-600 text-xl"></i>
 
             </div>
 
-        </div>
-
-    </div>
+            {% endif %}
 
 </nav>

@@ -1,0 +1,839 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}
+Owner Profile
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="mb-8">
+
+        <div class="flex flex-col sm:flex-row sm:items-center
+                    sm:justify-between gap-4">
+
+            <div>
+
+                <h1 class="text-3xl font-bold text-gray-800">
+                    My Profile
+                </h1>
+
+                <p class="text-gray-500 mt-1">
+                    Manage your personal information and account settings.
+                </p>
+
+            </div>
+
+            <div class="flex items-center gap-2
+                        text-sm text-gray-500">
+
+                <i class="fa-solid fa-user-circle text-blue-600"></i>
+
+                <span>Owner Account</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FLASH MESSAGES
+    ====================================================== -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="space-y-3 mb-6">
+
+                {% for category, message in messages %}
+
+                    <div class="flex items-start gap-3
+                                px-5 py-4 rounded-xl border
+                                {% if category == 'success' %}
+                                    bg-green-50
+                                    text-green-700
+                                    border-green-200
+                                {% else %}
+                                    bg-red-50
+                                    text-red-700
+                                    border-red-200
+                                {% endif %}">
+
+                        {% if category == 'success' %}
+
+                            <i class="fa-solid fa-circle-check mt-0.5"></i>
+
+                        {% else %}
+
+                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+
+                        {% endif %}
+
+                        <span>
+                            {{ message }}
+                        </span>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- =====================================================
+         MAIN GRID
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+
+        <!-- =================================================
+             PROFILE CARD
+        ================================================== -->
+
+        <div class="bg-white rounded-2xl
+                    border border-gray-100
+                    shadow-sm p-6">
+
+            <div class="text-center">
+
+                <!-- Profile Picture -->
+
+                <div class="relative inline-block">
+
+                    {% if owner.profile_picture %}
+
+                        <img
+                            src="{{ url_for(
+                                'static',
+                                filename='uploads/profiles/' ~ owner.profile_picture
+                            ) }}"
+                            alt="{{ owner.full_name }} profile picture"
+                            class="w-32 h-32 rounded-full
+                                   object-cover
+                                   border-4 border-blue-100
+                                   shadow-md"
+                        >
+
+                    {% else %}
+
+                        <div class="w-32 h-32 rounded-full
+                                    bg-blue-50
+                                    flex items-center justify-center
+                                    border-4 border-blue-100
+                                    shadow-sm">
+
+                            <i class="fa-solid fa-user
+                                      text-5xl text-blue-500"></i>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Owner Name -->
+
+                <h2 class="text-2xl font-bold
+                           text-gray-800 mt-5">
+
+                    {{ owner.full_name }}
+
+                </h2>
+
+
+                <!-- Role -->
+
+                <p class="text-gray-500 mt-1">
+
+                    Vehicle Owner
+
+                </p>
+
+
+                <!-- Status Badge -->
+
+                <div class="mt-4">
+
+                    {% if owner.status|default('')|trim|lower == 'active' %}
+
+                        <span class="inline-flex items-center
+                                     px-4 py-2
+                                     rounded-full
+                                     bg-green-100
+                                     text-green-700
+                                     text-sm font-semibold">
+
+                            <span class="w-2 h-2
+                                         bg-green-500
+                                         rounded-full mr-2">
+                            </span>
+
+                            Active
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="inline-flex items-center
+                                     px-4 py-2
+                                     rounded-full
+                                     bg-red-100
+                                     text-red-700
+                                     text-sm font-semibold">
+
+                            <span class="w-2 h-2
+                                         bg-red-500
+                                         rounded-full mr-2">
+                            </span>
+
+                            Inactive
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFILE PICTURE UPLOAD
+            ================================================== -->
+
+            <div class="border-t border-gray-100
+                        mt-7 pt-6">
+
+                <h3 class="text-sm font-semibold
+                           text-gray-700 mb-1">
+
+                    Change Profile Picture
+
+                </h3>
+
+                <p class="text-xs text-gray-500 mb-4">
+
+                    JPG, JPEG, PNG, GIF or WEBP.
+                    Choose a clear profile picture.
+
+                </p>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for('owner.upload_profile_picture') }}"
+                    enctype="multipart/form-data"
+                >
+
+                    <label
+                        for="profile_picture"
+                        class="block w-full
+                               border-2 border-dashed
+                               border-gray-300
+                               hover:border-blue-400
+                               rounded-xl p-4
+                               text-center
+                               cursor-pointer
+                               transition"
+                    >
+
+                        <i class="fa-solid fa-cloud-arrow-up
+                                  text-2xl text-blue-500 mb-2">
+                        </i>
+
+                        <p class="text-sm font-medium text-gray-700">
+                            Choose an image
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-1">
+                            Maximum size depends on server configuration
+                        </p>
+
+                        <input
+                            id="profile_picture"
+                            type="file"
+                            name="profile_picture"
+                            accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                            required
+                            class="hidden"
+                        >
+
+                    </label>
+
+
+                    <button
+                        type="submit"
+                        class="w-full mt-4
+                               bg-blue-600
+                               hover:bg-blue-700
+                               text-white
+                               py-3
+                               rounded-xl
+                               font-semibold
+                               transition
+                               flex items-center
+                               justify-center gap-2"
+                    >
+
+                        <i class="fa-solid fa-camera"></i>
+
+                        Upload Picture
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PERSONAL INFORMATION
+        ================================================== -->
+
+        <div class="lg:col-span-2
+                    bg-white rounded-2xl
+                    border border-gray-100
+                    shadow-sm p-6">
+
+
+            <!-- Section Header -->
+
+            <div class="flex items-center
+                        justify-between
+                        mb-7">
+
+                <div>
+
+                    <h2 class="text-xl font-bold text-gray-800">
+
+                        Personal Information
+
+                    </h2>
+
+                    <p class="text-gray-500
+                              text-sm mt-1">
+
+                        Update your personal and account information.
+
+                    </p>
+
+                </div>
+
+
+                <div class="hidden sm:flex
+                            w-11 h-11
+                            rounded-xl
+                            bg-blue-100
+                            items-center
+                            justify-center">
+
+                    <i class="fa-solid fa-user-gear
+                              text-blue-600">
+                    </i>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFILE FORM
+            ================================================== -->
+
+            <form
+                method="POST"
+                action="{{ url_for('owner.profile') }}"
+            >
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                    <!-- ==============================
+                         FULL NAME
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            for="full_name"
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Full Name
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-user
+                                      absolute left-4 top-3.5
+                                      text-gray-400">
+                            </i>
+
+                            <input
+                                id="full_name"
+                                type="text"
+                                name="full_name"
+                                value="{{ owner.full_name or '' }}"
+                                required
+                                autocomplete="name"
+                                class="w-full
+                                       border border-gray-300
+                                       rounded-xl
+                                       pl-11 pr-4 py-3
+                                       focus:ring-2
+                                       focus:ring-blue-500
+                                       focus:border-blue-500
+                                       outline-none
+                                       transition"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         EMAIL
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            for="email"
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Email Address
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-envelope
+                                      absolute left-4 top-3.5
+                                      text-gray-400">
+                            </i>
+
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                value="{{ owner.email or '' }}"
+                                required
+                                autocomplete="email"
+                                class="w-full
+                                       border border-gray-300
+                                       rounded-xl
+                                       pl-11 pr-4 py-3
+                                       focus:ring-2
+                                       focus:ring-blue-500
+                                       focus:border-blue-500
+                                       outline-none
+                                       transition"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         PHONE
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            for="phone"
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Phone Number
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-phone
+                                      absolute left-4 top-3.5
+                                      text-gray-400">
+                            </i>
+
+                            <input
+                                id="phone"
+                                type="tel"
+                                name="phone"
+                                value="{{ owner.phone or '' }}"
+                                autocomplete="tel"
+                                class="w-full
+                                       border border-gray-300
+                                       rounded-xl
+                                       pl-11 pr-4 py-3
+                                       focus:ring-2
+                                       focus:ring-blue-500
+                                       focus:border-blue-500
+                                       outline-none
+                                       transition"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         ACCOUNT ROLE
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            for="role"
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Account Role
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-id-badge
+                                      absolute left-4 top-3.5
+                                      text-gray-400">
+                            </i>
+
+                            <input
+                                id="role"
+                                type="text"
+                                value="{{ owner.role|default('owner')|capitalize }}"
+                                readonly
+                                class="w-full
+                                       border border-gray-200
+                                       bg-gray-50
+                                       rounded-xl
+                                       pl-11 pr-4 py-3
+                                       text-gray-500
+                                       cursor-not-allowed"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         ACCOUNT STATUS
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            for="status"
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Account Status
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-toggle-on
+                                      absolute left-4 top-3.5
+                                      text-gray-400
+                                      z-10">
+                            </i>
+
+                            <select
+                                id="status"
+                                name="status"
+                                class="w-full
+                                       border border-gray-300
+                                       rounded-xl
+                                       pl-11 pr-10 py-3
+                                       bg-white
+                                       focus:ring-2
+                                       focus:ring-blue-500
+                                       focus:border-blue-500
+                                       outline-none
+                                       transition
+                                       cursor-pointer"
+                            >
+
+                                <option
+                                    value="Active"
+                                    {% if owner.status|default('')|trim|lower == 'active' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Active
+                                </option>
+
+                                <option
+                                    value="Inactive"
+                                    {% if owner.status|default('')|trim|lower != 'active' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <p class="text-xs text-gray-400 mt-2">
+
+                            Choose whether this owner account is active or inactive.
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         JOINED DATE
+                    =============================== -->
+
+                    <div>
+
+                        <label
+                            class="block text-sm
+                                   font-semibold
+                                   text-gray-700 mb-2"
+                        >
+
+                            Joined
+
+                        </label>
+
+                        <div class="relative">
+
+                            <i class="fa-solid fa-calendar
+                                      absolute left-4 top-3.5
+                                      text-gray-400">
+                            </i>
+
+                            <input
+                                type="text"
+                                value="{{ owner.created_at or 'N/A' }}"
+                                readonly
+                                class="w-full
+                                       border border-gray-200
+                                       bg-gray-50
+                                       rounded-xl
+                                       pl-11 pr-4 py-3
+                                       text-gray-500
+                                       cursor-not-allowed"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     ACCOUNT SUMMARY
+                ================================================== -->
+
+                <div class="mt-7
+                            bg-gray-50
+                            border border-gray-100
+                            rounded-xl p-5">
+
+                    <div class="flex items-center gap-3 mb-4">
+
+                        <div class="w-10 h-10
+                                    rounded-lg
+                                    bg-blue-100
+                                    flex items-center
+                                    justify-center">
+
+                            <i class="fa-solid fa-shield-halved
+                                      text-blue-600">
+                            </i>
+
+                        </div>
+
+                        <div>
+
+                            <h3 class="font-semibold text-gray-800">
+
+                                Account Information
+
+                            </h3>
+
+                            <p class="text-xs text-gray-500">
+
+                                Current account status
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        <!-- Current Status -->
+
+                        <div class="bg-white
+                                    rounded-lg
+                                    border border-gray-100
+                                    p-4">
+
+                            <p class="text-xs
+                                      text-gray-500
+                                      uppercase
+                                      font-semibold">
+
+                                Current Status
+
+                            </p>
+
+                            <div class="mt-2">
+
+                                {% if owner.status|default('')|trim|lower == 'active' %}
+
+                                    <span class="inline-flex
+                                                 items-center
+                                                 gap-2
+                                                 text-green-700
+                                                 font-semibold">
+
+                                        <span class="w-2.5 h-2.5
+                                                     bg-green-500
+                                                     rounded-full">
+                                        </span>
+
+                                        Active
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="inline-flex
+                                                 items-center
+                                                 gap-2
+                                                 text-red-700
+                                                 font-semibold">
+
+                                        <span class="w-2.5 h-2.5
+                                                     bg-red-500
+                                                     rounded-full">
+                                        </span>
+
+                                        Inactive
+
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Account Type -->
+
+                        <div class="bg-white
+                                    rounded-lg
+                                    border border-gray-100
+                                    p-4">
+
+                            <p class="text-xs
+                                      text-gray-500
+                                      uppercase
+                                      font-semibold">
+
+                                Account Type
+
+                            </p>
+
+                            <p class="font-semibold
+                                      text-gray-700 mt-2">
+
+                                Vehicle Owner
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     SAVE BUTTON
+                ================================================== -->
+
+                <div class="flex flex-col sm:flex-row
+                            sm:justify-end
+                            gap-3 mt-7">
+
+                    <button
+                        type="submit"
+                        class="bg-blue-600
+                               hover:bg-blue-700
+                               active:bg-blue-800
+                               text-white
+                               px-7 py-3
+                               rounded-xl
+                               font-semibold
+                               transition
+                               shadow-sm
+                               hover:shadow
+                               flex items-center
+                               justify-center
+                               gap-2"
+                    >
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

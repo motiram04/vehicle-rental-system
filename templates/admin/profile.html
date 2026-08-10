@@ -1,0 +1,368 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <!-- Page Header -->
+
+    <div class="mb-6">
+
+        <h1 class="text-3xl font-bold text-gray-800">
+            My Profile
+        </h1>
+
+        <p class="text-gray-500 mt-1">
+            Manage your administrator profile.
+        </p>
+
+    </div>
+
+
+    <!-- Flash Messages -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+    {% if messages %}
+
+    {% for category, message in messages %}
+
+    <div class="mb-4 px-5 py-3 rounded-lg
+                    {% if category == 'success' %}
+                        bg-green-100 text-green-700
+                    {% elif category == 'danger' %}
+                        bg-red-100 text-red-700
+                    {% else %}
+                        bg-blue-100 text-blue-700
+                    {% endif %}
+                ">
+
+        {{ message }}
+
+    </div>
+
+    {% endfor %}
+
+    {% endif %}
+
+    {% endwith %}
+
+
+    <!-- Profile Card -->
+
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+
+
+        <!-- Blue Header -->
+
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-10">
+
+            <div class="flex flex-col md:flex-row items-center gap-6">
+
+
+                <!-- Profile Picture -->
+
+                <div class="relative">
+
+
+                    {% if admin.profile_picture %}
+
+                    <img src="{{ url_for('static', filename='uploads/profile/' ~ admin.profile_picture) }}"
+                        alt="Profile Picture"
+                        class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg">
+
+                    {% else %}
+
+                    <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Default Profile Picture"
+                        class="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg">
+
+                    {% endif %}
+
+                    <!-- Camera Button -->
+
+                    <label for="profile_picture"
+                        class="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shadow">
+
+                        📷
+
+                    </label>
+
+                </div>
+
+
+                <!-- Profile Name -->
+
+                <div class="text-center md:text-left text-white">
+
+                    <h2 class="text-3xl font-bold">
+
+                        {{ admin.full_name }}
+
+                    </h2>
+
+                    <p class="text-blue-100 mt-1">
+
+                        {{ admin.email }}
+
+                    </p>
+
+
+                    <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+
+
+                        <span class="bg-white/20 text-white px-4 py-1 rounded-full text-sm">
+
+                            🛡️ Administrator
+
+                        </span>
+
+
+                        {% if admin.status and admin.status|lower == "active" %}
+
+                        <span class="bg-green-500 text-white px-4 py-1 rounded-full text-sm">
+
+                            ● Active
+
+                        </span>
+
+                        {% else %}
+
+                        <span class="bg-red-500 text-white px-4 py-1 rounded-full text-sm">
+
+                            ● Inactive
+
+                        </span>
+
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Upload Picture Form -->
+
+        <div class="px-8 pt-6">
+
+            <form method="POST" action="{{ url_for('admin.upload_profile_picture') }}" enctype="multipart/form-data"
+                class="flex flex-wrap gap-3 items-center">
+
+                <input type="file" id="profile_picture" name="profile_picture" accept=".jpg,.jpeg,.png,.webp"
+                    class="border rounded-lg px-3 py-2" required>
+
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
+
+                    Upload Picture
+
+                </button>
+
+            </form>
+
+
+            {% if admin.profile_picture %}
+
+            <form method="POST" action="{{ url_for('admin.remove_profile_picture') }}" class="mt-3">
+
+                <button type="submit" onclick="return confirm('Remove your profile picture?')"
+                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+
+                    🗑️ Remove Profile Picture
+
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Account Information -->
+
+        <div class="p-8">
+
+
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+
+                Account Information
+
+            </h3>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+                <!-- Full Name -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Full Name
+                    </p>
+
+                    <p class="text-lg font-semibold text-gray-800 mt-1">
+
+                        {{ admin.full_name }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Email Address
+                    </p>
+
+                    <p class="text-lg font-semibold text-gray-800 mt-1 break-all">
+
+                        {{ admin.email }}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Phone -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Phone Number
+                    </p>
+
+                    <p class="text-lg font-semibold text-gray-800 mt-1">
+
+                        {% if admin.phone %}
+
+                        {{ admin.phone }}
+
+                        {% else %}
+
+                        Not provided
+
+                        {% endif %}
+
+                    </p>
+
+                </div>
+
+
+                <!-- Role -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Role
+                    </p>
+
+                    <p class="text-lg font-semibold text-gray-800 mt-1">
+
+                        Administrator
+
+                    </p>
+
+                </div>
+
+
+                <!-- Status -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Account Status
+                    </p>
+
+
+                    {% if admin.status and admin.status|lower == "active" %}
+
+                    <span class="inline-block mt-2 bg-green-100 text-green-700 px-4 py-1 rounded-full font-semibold">
+
+                        ● Active
+
+                    </span>
+
+                    {% else %}
+
+                    <span class="inline-block mt-2 bg-red-100 text-red-700 px-4 py-1 rounded-full font-semibold">
+
+                        ● Inactive
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Joined -->
+
+                <div class="border rounded-xl p-5">
+
+                    <p class="text-sm text-gray-500">
+                        Member Since
+                    </p>
+
+                    <p class="text-lg font-semibold text-gray-800 mt-1">
+
+                        {{ admin.created_at }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Actions -->
+
+            <div class="border-t mt-8 pt-6">
+
+                <h3 class="text-xl font-bold text-gray-800 mb-4">
+
+                    Account Actions
+
+                </h3>
+
+
+                <div class="flex flex-wrap gap-3">
+
+
+                    <a href="{{ url_for(
+                            'admin.edit_user',
+                            user_id=admin.user_id
+                        ) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-lg font-medium">
+
+                        ✏️ Edit Profile
+
+                    </a>
+
+
+                    <a href="{{ url_for('admin.dashboard') }}"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg font-medium">
+
+                        ← Dashboard
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

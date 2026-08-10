@@ -351,6 +351,23 @@
                         View
 
                     </a>
+                    <!-- {% if vehicle.vehicle_status == "Active" %}
+
+                    <a href="{{ url_for('admin.deactivate_vehicle', vehicle_id=vehicle.vehicle_id) }}"
+                        onclick="return confirm('Are you sure you want to deactivate this vehicle?')"
+                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">
+                        Deactivate
+                    </a>
+
+                    {% else %}
+
+                    <a href="{{ url_for('admin.activate_vehicle', vehicle_id=vehicle.vehicle_id) }}"
+                        onclick="return confirm('Are you sure you want to activate this vehicle?')"
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded">
+                        Activate
+                    </a> -->
+
+                    {% endif %}
 
                 </td>
 

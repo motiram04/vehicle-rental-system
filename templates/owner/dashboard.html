@@ -19,153 +19,226 @@
 
 <!-- Dashboard Cards -->
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+<!-- ==========================================
+     DASHBOARD STATISTICS
+========================================== -->
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
 
     <!-- Total Vehicles -->
-    <div class="bg-white rounded-xl shadow p-6">
+    <a href="{{ url_for('owner.vehicles') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
+                <p class="text-gray-500 text-sm font-medium">
+                    Total Vehicles
+                </p>
 
-                <p class="text-gray-500">Total Vehicles</p>
-
-                <h2 class="text-3xl font-bold mt-2">
-
+                <h2 class="text-3xl font-bold text-gray-800 mt-2">
                     {{ total_vehicles|default(0) }}
-
                 </h2>
+
+                <p class="text-blue-600 text-xs mt-2 font-medium">
+                    View vehicles →
+                </p>
+            </div>
+
+            <div class="w-12 h-12 rounded-xl bg-blue-100
+                        flex items-center justify-center
+                        group-hover:bg-blue-600 transition">
+
+                <i class="fa-solid fa-car text-xl text-blue-600
+                          group-hover:text-white"></i>
 
             </div>
 
-            <i class="fa-solid fa-car text-4xl text-blue-500"></i>
-
         </div>
 
-    </div>
+    </a>
+
 
     <!-- Approved -->
+    <a href="{{ url_for('owner.vehicles') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
 
-                <p class="text-gray-500">Approved</p>
+                <p class="text-gray-500 text-sm font-medium">
+                    Approved
+                </p>
 
                 <h2 class="text-3xl font-bold text-green-600 mt-2">
-
                     {{ approved_vehicles|default(0) }}
-
                 </h2>
+
+                <p class="text-green-600 text-xs mt-2 font-medium">
+                    Ready for rental
+                </p>
 
             </div>
 
-            <i class="fa-solid fa-circle-check text-4xl text-green-500"></i>
+            <div class="w-12 h-12 rounded-xl bg-green-100
+                        flex items-center justify-center
+                        group-hover:bg-green-600 transition">
+
+                <i class="fa-solid fa-circle-check text-xl text-green-600
+                          group-hover:text-white"></i>
+
+            </div>
 
         </div>
 
-    </div>
+    </a>
+
 
     <!-- Pending -->
+    <a href="{{ url_for('owner.vehicles') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
 
-                <p class="text-gray-500">Pending</p>
+                <p class="text-gray-500 text-sm font-medium">
+                    Pending
+                </p>
 
                 <h2 class="text-3xl font-bold text-yellow-500 mt-2">
-
                     {{ pending_vehicles|default(0) }}
-
                 </h2>
+
+                <p class="text-yellow-600 text-xs mt-2 font-medium">
+                    Awaiting approval
+                </p>
 
             </div>
 
-            <i class="fa-solid fa-clock text-4xl text-yellow-500"></i>
+            <div class="w-12 h-12 rounded-xl bg-yellow-100
+                        flex items-center justify-center
+                        group-hover:bg-yellow-500 transition">
+
+                <i class="fa-solid fa-clock text-xl text-yellow-500
+                          group-hover:text-white"></i>
+
+            </div>
 
         </div>
 
-    </div>
+    </a>
+
 
     <!-- Rejected -->
+    <a href="{{ url_for('owner.vehicles') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
 
-                <p class="text-gray-500">Rejected</p>
+                <p class="text-gray-500 text-sm font-medium">
+                    Rejected
+                </p>
 
                 <h2 class="text-3xl font-bold text-red-500 mt-2">
-
                     {{ rejected_vehicles|default(0) }}
-
                 </h2>
+
+                <p class="text-red-500 text-xs mt-2 font-medium">
+                    Needs attention
+                </p>
 
             </div>
 
-            <i class="fa-solid fa-circle-xmark text-4xl text-red-500"></i>
+            <div class="w-12 h-12 rounded-xl bg-red-100
+                        flex items-center justify-center
+                        group-hover:bg-red-500 transition">
+
+                <i class="fa-solid fa-circle-xmark text-xl text-red-500
+                          group-hover:text-white"></i>
+
+            </div>
 
         </div>
 
-    </div>
+    </a>
+
 
     <!-- Bookings -->
+    <a href="{{ url_for('owner.bookings') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
 
-                <p class="text-gray-500">Bookings</p>
+                <p class="text-gray-500 text-sm font-medium">
+                    Bookings
+                </p>
 
-                <h2 class="text-3xl font-bold mt-2">
-
+                <h2 class="text-3xl font-bold text-purple-600 mt-2">
                     {{ total_bookings|default(0) }}
-
                 </h2>
+
+                <p class="text-purple-600 text-xs mt-2 font-medium">
+                    {{ pending_bookings|default(0) }} pending
+                </p>
 
             </div>
 
-            <i class="fa-solid fa-calendar-check text-4xl text-purple-500"></i>
+            <div class="w-12 h-12 rounded-xl bg-purple-100
+                        flex items-center justify-center
+                        group-hover:bg-purple-600 transition">
+
+                <i class="fa-solid fa-calendar-check text-xl text-purple-600
+                          group-hover:text-white"></i>
+
+            </div>
 
         </div>
 
-    </div>
+    </a>
+
 
     <!-- Earnings -->
+    <a href="{{ url_for('owner.earnings') }}" class="group bg-white rounded-2xl shadow-sm border border-gray-100
+              p-5 hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-    <div class="bg-white rounded-xl shadow p-6">
-
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
 
             <div>
 
-                <p class="text-gray-500">Earnings</p>
+                <p class="text-gray-500 text-sm font-medium">
+                    Earnings
+                </p>
 
                 <h2 class="text-2xl font-bold text-emerald-600 mt-2">
-
-                    Rs. {{ total_earnings|default(0) }}
-
+                    Rs. {{ "{:,.2f}".format(total_earnings|default(0)|float) }}
                 </h2>
+
+                <p class="text-emerald-600 text-xs mt-2 font-medium">
+                    Completed bookings
+                </p>
 
             </div>
 
-            <i class="fa-solid fa-wallet text-4xl text-emerald-500"></i>
+            <div class="w-12 h-12 rounded-xl bg-emerald-100
+                        flex items-center justify-center
+                        group-hover:bg-emerald-600 transition">
+
+                <i class="fa-solid fa-wallet text-xl text-emerald-600
+                          group-hover:text-white"></i>
+
+            </div>
 
         </div>
 
-    </div>
+    </a>
 
 </div>
-
 <!-- Recent Vehicles + Profile -->
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -232,17 +305,43 @@
 
     <!-- Owner Profile -->
 
+
+
     <div class="bg-white rounded-xl shadow p-6 text-center">
 
-        <img src="{{ url_for('static', filename='images/default-user.png') }}"
+        <!-- Profile Picture -->
 
-             class="w-32 h-32 rounded-full mx-auto border-4 border-blue-500">
+        {% if owner and owner.profile_picture %}
+
+        <img src="{{ url_for(
+                'static',
+                filename='uploads/profiles/' ~ owner.profile_picture
+            ) }}" alt="{{ owner.full_name }}" class="w-32 h-32 rounded-full mx-auto
+                   object-cover border-4 border-blue-500">
+
+        {% else %}
+
+        <div class="w-32 h-32 rounded-full mx-auto
+                    bg-blue-100
+                    border-4 border-blue-500
+                    flex items-center justify-center">
+
+            <i class="fa-solid fa-user
+                      text-5xl text-blue-600"></i>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- Name -->
 
         <h2 class="text-2xl font-bold mt-4">
 
-            {{ session.get('full_name') }}
+            {{ owner.full_name }}
 
         </h2>
+
 
         <p class="text-gray-500">
 
@@ -250,7 +349,11 @@
 
         </p>
 
+
         <hr class="my-5">
+
+
+        <!-- Contact Information -->
 
         <div class="text-left space-y-3">
 
@@ -258,15 +361,16 @@
 
                 <strong>Email:</strong>
 
-                {{ session.get('email') }}
+                {{ owner.email }}
 
             </p>
+
 
             <p>
 
                 <strong>Phone:</strong>
 
-                {{ session.get('phone') }}
+                {{ owner.phone }}
 
             </p>
 
@@ -274,74 +378,72 @@
 
     </div>
 
-</div>
+    <!-- Recent Bookings -->
 
-<!-- Recent Bookings -->
+    <div class="bg-white rounded-xl shadow p-6">
 
-<div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-6">
 
-    <h2 class="text-xl font-bold mb-6">
+            Recent Booking Requests
 
-        Recent Booking Requests
+        </h2>
 
-    </h2>
+        <table class="w-full">
 
-    <table class="w-full">
+            <thead>
 
-        <thead>
+                <tr class="border-b">
 
-            <tr class="border-b">
+                    <th class="text-left py-3">Customer</th>
 
-                <th class="text-left py-3">Customer</th>
+                    <th>Vehicle</th>
 
-                <th>Vehicle</th>
+                    <th>Date</th>
 
-                <th>Date</th>
+                    <th>Status</th>
 
-                <th>Status</th>
+                </tr>
 
-            </tr>
+            </thead>
 
-        </thead>
+            <tbody>
 
-        <tbody>
+                {% for booking in recent_bookings %}
 
-            {% for booking in recent_bookings %}
+                <tr class="border-b hover:bg-gray-50">
 
-            <tr class="border-b hover:bg-gray-50">
+                    <td class="py-4">
 
-                <td class="py-4">
+                        {{ booking.customer_name }}
 
-                    {{ booking.customer_name }}
+                    </td>
 
-                </td>
+                    <td>
 
-                <td>
+                        {{ booking.vehicle_name }}
 
-                    {{ booking.vehicle_name }}
+                    </td>
 
-                </td>
+                    <td>
 
-                <td>
+                        {{ booking.booking_date }}
 
-                    {{ booking.booking_date }}
+                    </td>
 
-                </td>
+                    <td>
 
-                <td>
+                        {{ booking.booking_status }}
 
-                    {{ booking.booking_status }}
+                    </td>
 
-                </td>
+                </tr>
 
-            </tr>
+                {% endfor %}
 
-            {% endfor %}
+            </tbody>
 
-        </tbody>
+        </table>
 
-    </table>
+    </div>
 
-</div>
-
-{% endblock %}
+    {% endblock %}
