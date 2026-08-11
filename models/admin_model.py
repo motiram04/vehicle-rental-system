@@ -1396,3 +1396,505 @@ class AdminModel:
         cursor.close()
 
         return affected_rows > 0
+    
+    
+    # ==========================================================
+# REPORT STATISTICS
+# ==========================================================
+
+    @staticmethod
+    def get_report_statistics(start_date="", end_date=""):
+
+        cursor = mysql.connection.cursor()
+
+        # ------------------------------------------------------
+        # Date condition
+        # ------------------------------------------------------
+
+        booking_condition = ""
+        payment_condition = ""
+
+        booking_values = []
+        payment_values = []
+
+        if start_date:
+
+            booking_condition += """
+                AND DATE(b.booking_date) >= %s
+            """
+
+            booking_values.append(start_date)
+
+            payment_condition += """
+                AND DATE(p.payment_date) >= %s
+            """
+
+            payment_values.append(start_date)
+
+        if end_date:
+
+            booking_condition += """
+                AND DATE(b.booking_date) <= %s
+            """
+
+            booking_values.append(end_date)
+
+            payment_condition += """
+                AND DATE(p.payment_date) <= %s
+            """
+
+            payment_values.append(end_date)
+
+        # ------------------------------------------------------
+        # Total bookings
+        # ------------------------------------------------------
+
+        cursor.execute(
+            f"""
+            SELECT
+                COUNT(*) AS total_bookings,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(booking_status) = 'pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_bookings,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(booking_status) = 'approved'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS approved_bookings,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(booking_status) = 'completed'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS completed_bookings,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(booking_status) = 'cancelled'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS cancelled_bookings
+
+            FROM bookings b
+
+            WHERE 1=1
+
+            {booking_condition}
+            """,
+            booking_values
+        )
+
+        booking_stats = cursor.fetchone()
+
+        # ------------------------------------------------------
+        # Payments / Revenue
+        # ------------------------------------------------------
+
+        cursor.execute(
+            f"""
+            SELECT
+
+                COUNT(*) AS total_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status))
+                            IN (
+                                'paid',
+                                'completed',
+                                'successful',
+                                'success'
+                            )
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS paid_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status)) = 'pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status)) = 'failed'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS failed_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status))
+                            IN (
+                                'paid',
+                                'completed',
+                                'successful',
+                                'success'
+                            )
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_revenue
+
+            FROM payments p
+
+            WHERE 1=1
+
+            {payment_condition}
+            """,
+            payment_values
+        )
+
+        payment_stats = cursor.fetchone()
+
+        # ------------------------------------------------------
+        # Vehicles
+        # ------------------------------------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_vehicles
+            FROM vehicles
+        """)
+
+        total_vehicles = cursor.fetchone()["total_vehicles"]
+
+        # ------------------------------------------------------
+        # Customers
+        # ------------------------------------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_customers
+            FROM users
+            WHERE role = 'customer'
+        """)
+
+        total_customers = cursor.fetchone()["total_customers"]
+
+        cursor.close()
+
+        return {
+            "total_bookings": booking_stats["total_bookings"],
+            "pending_bookings": booking_stats["pending_bookings"],
+            "approved_bookings": booking_stats["approved_bookings"],
+            "completed_bookings": booking_stats["completed_bookings"],
+            "cancelled_bookings": booking_stats["cancelled_bookings"],
+
+            "total_payments": payment_stats["total_payments"],
+            "paid_payments": payment_stats["paid_payments"],
+            "pending_payments": payment_stats["pending_payments"],
+            "failed_payments": payment_stats["failed_payments"],
+
+            "total_revenue": payment_stats["total_revenue"],
+
+            "total_vehicles": total_vehicles,
+
+            "total_customers": total_customers
+        }
+        
+        # ==========================================================
+# BOOKING REPORT
+# ==========================================================
+
+    @staticmethod
+    def get_booking_report(start_date="", end_date=""):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                b.booking_id,
+
+                b.booking_date,
+
+                customer.full_name AS customer_name,
+
+                owner.full_name AS owner_name,
+
+                v.vehicle_name,
+
+                v.vehicle_number,
+
+                b.pickup_date,
+
+                b.return_date,
+
+                b.total_days,
+
+                b.total_amount,
+
+                b.booking_status
+
+            FROM bookings b
+
+            JOIN users customer
+                ON b.customer_id = customer.user_id
+
+            JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            JOIN users owner
+                ON v.owner_id = owner.user_id
+
+            WHERE 1=1
+        """
+
+        values = []
+
+        if start_date:
+
+            query += """
+                AND DATE(b.booking_date) >= %s
+            """
+
+            values.append(start_date)
+
+        if end_date:
+
+            query += """
+                AND DATE(b.booking_date) <= %s
+            """
+
+            values.append(end_date)
+
+        query += """
+            ORDER BY b.booking_id DESC
+        """
+
+        cursor.execute(query, values)
+
+        bookings = cursor.fetchall()
+
+        cursor.close()
+
+        return bookings
+    
+    # ==========================================================
+# PAYMENT REPORT
+# ==========================================================
+
+    @staticmethod
+    def get_payment_report(start_date="", end_date=""):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                p.payment_id,
+
+                p.booking_id,
+
+                customer.full_name AS customer_name,
+
+                owner.full_name AS owner_name,
+
+                v.vehicle_name,
+
+                p.amount,
+
+                p.payment_method,
+
+                p.transaction_id,
+
+                p.payment_status,
+
+                p.payment_date
+
+            FROM payments p
+
+            JOIN bookings b
+                ON p.booking_id = b.booking_id
+
+            JOIN users customer
+                ON b.customer_id = customer.user_id
+
+            JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            JOIN users owner
+                ON v.owner_id = owner.user_id
+
+            WHERE 1=1
+        """
+
+        values = []
+
+        if start_date:
+
+            query += """
+                AND DATE(p.payment_date) >= %s
+            """
+
+            values.append(start_date)
+
+        if end_date:
+
+            query += """
+                AND DATE(p.payment_date) <= %s
+            """
+
+            values.append(end_date)
+
+        query += """
+            ORDER BY p.payment_id DESC
+        """
+
+        cursor.execute(query, values)
+
+        payments = cursor.fetchall()
+
+        cursor.close()
+
+        return payments
+    
+    # ==========================================================
+# VEHICLE REPORT
+# ==========================================================
+
+    @staticmethod
+    def get_vehicle_report():
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                v.vehicle_id,
+
+                v.vehicle_name,
+
+                v.model,
+
+                v.vehicle_number,
+
+                vc.category_name,
+
+                owner.full_name AS owner_name,
+
+                v.rent_per_day,
+
+                v.availability_status,
+
+                v.approval_status
+
+            FROM vehicles v
+
+            LEFT JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            LEFT JOIN users owner
+                ON v.owner_id = owner.user_id
+
+            ORDER BY v.vehicle_id DESC
+        """
+
+        cursor.execute(query)
+
+        vehicles = cursor.fetchall()
+
+        cursor.close()
+
+        return vehicles
+    
+    
+    # ==========================================================
+# CUSTOMER REPORT
+# ==========================================================
+
+    @staticmethod
+    def get_customer_report():
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                u.user_id,
+
+                u.full_name,
+
+                u.email,
+
+                u.phone,
+
+                u.status,
+
+                COUNT(b.booking_id) AS total_bookings,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(b.booking_status)
+                            = 'completed'
+                            THEN b.total_amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_spending
+
+            FROM users u
+
+            LEFT JOIN bookings b
+                ON u.user_id = b.customer_id
+
+            WHERE u.role = 'customer'
+
+            GROUP BY
+
+                u.user_id,
+                u.full_name,
+                u.email,
+                u.phone,
+                u.status
+
+            ORDER BY u.user_id DESC
+        """
+
+        cursor.execute(query)
+
+        customers = cursor.fetchall()
+
+        cursor.close()
+
+        return customers

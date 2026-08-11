@@ -1,0 +1,903 @@
+{% extends "admin/layout/base.html" %}
+
+{% block title %}
+Reports
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                Reports & Analytics
+            </h2>
+
+            <p class="text-muted mb-0">
+                Monitor bookings, payments, vehicles and customers.
+            </p>
+
+        </div>
+
+        <button onclick="window.print()" class="btn btn-dark">
+
+            🖨 Print Report
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <form method="GET" action="{{ url_for('admin.reports') }}" class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">
+                        End Date
+                    </label>
+
+                    <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <button type="submit" class="btn btn-primary me-2">
+
+                        🔍 Generate Report
+
+                    </button>
+
+                    <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-secondary">
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- Total Bookings -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">
+                        Total Bookings
+                    </p>
+
+                    <h3 class="fw-bold">
+                        {{ stats.total_bookings }}
+                    </h3>
+
+                    <small class="text-primary">
+                        Approved: {{ stats.approved_bookings }}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Completed -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">
+                        Completed Bookings
+                    </p>
+
+                    <h3 class="fw-bold text-success">
+                        {{ stats.completed_bookings }}
+                    </h3>
+
+                    <small class="text-muted">
+                        Cancelled: {{ stats.cancelled_bookings }}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Revenue -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">
+                        Total Revenue
+                    </p>
+
+                    <h3 class="fw-bold text-success">
+
+                        Rs.
+                        {{ "{:,.2f}".format(stats.total_revenue or 0) }}
+
+                    </h3>
+
+                    <small class="text-muted">
+                        Successful payments
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Customers -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">
+                        Total Customers
+                    </p>
+
+                    <h3 class="fw-bold">
+                        {{ stats.total_customers }}
+                    </h3>
+
+                    <small class="text-muted">
+                        Registered customers
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BOOKING SUMMARY
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="fw-bold mb-0">
+                Booking Summary
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row text-center">
+
+                <div class="col-md-3">
+
+                    <h4>
+                        {{ stats.pending_bookings }}
+                    </h4>
+
+                    <span class="badge bg-warning">
+                        Pending
+                    </span>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h4>
+                        {{ stats.approved_bookings }}
+                    </h4>
+
+                    <span class="badge bg-primary">
+                        Approved
+                    </span>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h4>
+                        {{ stats.completed_bookings }}
+                    </h4>
+
+                    <span class="badge bg-success">
+                        Completed
+                    </span>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h4>
+                        {{ stats.cancelled_bookings }}
+                    </h4>
+
+                    <span class="badge bg-danger">
+                        Cancelled
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BOOKING REPORT
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="fw-bold mb-0">
+                Booking Report
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Customer</th>
+
+                            <th>Vehicle</th>
+
+                            <th>Pickup</th>
+
+                            <th>Return</th>
+
+                            <th>Days</th>
+
+                            <th>Amount</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for booking in booking_report %}
+
+                        <tr>
+
+                            <td>
+                                #{{ booking.booking_id }}
+                            </td>
+
+                            <td>
+                                {{ booking.customer_name }}
+                            </td>
+
+                            <td>
+
+                                {{ booking.vehicle_name }}
+
+                                <br>
+
+                                <small class="text-muted">
+                                    {{ booking.vehicle_number }}
+                                </small>
+
+                            </td>
+
+                            <td>
+                                {{ booking.pickup_date }}
+                            </td>
+
+                            <td>
+                                {{ booking.return_date }}
+                            </td>
+
+                            <td>
+                                {{ booking.total_days }}
+                            </td>
+
+                            <td>
+                                Rs. {{ "{:,.2f}".format(booking.total_amount or 0) }}
+                            </td>
+
+                            <td>
+
+                                {% if booking.booking_status|lower == "completed" %}
+
+                                <span class="badge bg-success">
+                                    Completed
+                                </span>
+
+                                {% elif booking.booking_status|lower == "approved" %}
+
+                                <span class="badge bg-primary">
+                                    Approved
+                                </span>
+
+                                {% elif booking.booking_status|lower == "pending" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+
+                                {% elif booking.booking_status|lower == "cancelled" %}
+
+                                <span class="badge bg-danger">
+                                    Cancelled
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ booking.booking_status }}
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="8" class="text-center py-4 text-muted">
+
+                                No booking records found.
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT REPORT
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="fw-bold mb-0">
+                Payment & Revenue Report
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Booking</th>
+
+                            <th>Customer</th>
+
+                            <th>Vehicle</th>
+
+                            <th>Amount</th>
+
+                            <th>Method</th>
+
+                            <th>Transaction</th>
+
+                            <th>Status</th>
+
+                            <th>Date</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for payment in payment_report %}
+
+                        <tr>
+
+                            <td>
+                                #{{ payment.payment_id }}
+                            </td>
+
+                            <td>
+                                #{{ payment.booking_id }}
+                            </td>
+
+                            <td>
+                                {{ payment.customer_name }}
+                            </td>
+
+                            <td>
+                                {{ payment.vehicle_name }}
+                            </td>
+
+                            <td class="fw-semibold">
+                                Rs. {{ "{:,.2f}".format(payment.amount or 0) }}
+                            </td>
+
+                            <td>
+                                {{ payment.payment_method }}
+                            </td>
+
+                            <td>
+
+                                <small>
+                                    {{ payment.transaction_id or "-" }}
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                {% if payment.payment_status|lower in
+                                ["paid", "completed", "successful", "success"] %}
+
+                                <span class="badge bg-success">
+                                    {{ payment.payment_status }}
+                                </span>
+
+                                {% elif payment.payment_status|lower == "pending" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+
+                                {% elif payment.payment_status|lower == "failed" %}
+
+                                <span class="badge bg-danger">
+                                    Failed
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ payment.payment_status }}
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ payment.payment_date }}
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="9" class="text-center py-4 text-muted">
+
+                                No payment records found.
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         VEHICLE REPORT
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="fw-bold mb-0">
+                Vehicle Report
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Vehicle</th>
+
+                            <th>Category</th>
+
+                            <th>Owner</th>
+
+                            <th>Rent / Day</th>
+
+                            <th>Availability</th>
+
+                            <th>Approval</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for vehicle in vehicle_report %}
+
+                        <tr>
+
+                            <td>
+                                #{{ vehicle.vehicle_id }}
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    {{ vehicle.vehicle_name }}
+                                </strong>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    {{ vehicle.vehicle_number }}
+                                </small>
+
+                            </td>
+
+                            <td>
+                                {{ vehicle.category_name or "-" }}
+                            </td>
+
+                            <td>
+                                {{ vehicle.owner_name or "-" }}
+                            </td>
+
+                            <td>
+                                Rs. {{ "{:,.2f}".format(vehicle.rent_per_day or 0) }}
+                            </td>
+
+                            <td>
+
+                                {% if vehicle.availability_status|lower == "available" %}
+
+                                <span class="badge bg-success">
+                                    Available
+                                </span>
+
+                                {% elif vehicle.availability_status|lower == "booked" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Booked
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ vehicle.availability_status }}
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if vehicle.approval_status|lower == "approved" %}
+
+                                <span class="badge bg-success">
+                                    Approved
+                                </span>
+
+                                {% elif vehicle.approval_status|lower == "pending" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+
+                                {% elif vehicle.approval_status|lower == "rejected" %}
+
+                                <span class="badge bg-danger">
+                                    Rejected
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ vehicle.approval_status }}
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="7" class="text-center py-4 text-muted">
+
+                                No vehicles found.
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CUSTOMER REPORT
+    ====================================================== -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="fw-bold mb-0">
+                Customer Report
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Customer</th>
+
+                            <th>Email</th>
+
+                            <th>Phone</th>
+
+                            <th>Bookings</th>
+
+                            <th>Total Spending</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for customer in customer_report %}
+
+                        <tr>
+
+                            <td>
+                                #{{ customer.user_id }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ customer.full_name }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ customer.email }}
+                            </td>
+
+                            <td>
+                                {{ customer.phone or "-" }}
+                            </td>
+
+                            <td>
+                                {{ customer.total_bookings }}
+                            </td>
+
+                            <td class="fw-semibold">
+
+                                Rs.
+                                {{ "{:,.2f}".format(customer.total_spending or 0) }}
+
+                            </td>
+
+                            <td>
+
+                                {% if customer.status|lower == "active" %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ customer.status }}
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="7" class="text-center py-4 text-muted">
+
+                                No customers found.
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PRINT CSS
+====================================================== -->
+
+<style>
+    @media print {
+
+        .sidebar,
+        .navbar,
+        .no-print,
+        button,
+        form {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            page-break-inside: avoid;
+        }
+
+        table {
+            font-size: 11px;
+        }
+
+    }
+</style>
+
+{% endblock %}

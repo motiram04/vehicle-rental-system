@@ -625,11 +625,13 @@ def update_payment_status(payment_id):
     return redirect(
         url_for("admin.payments")
     )
-    # --------------------------------------------
-# Reports
-# --------------------------------------------
 
-@admin.route("/reports")
+
+# ==========================================================
+# REPORTS
+# ==========================================================
+
+@admin.route("/admin/reports")
 def reports():
 
     check = admin_required()
@@ -637,8 +639,76 @@ def reports():
     if check:
         return check
 
-    return render_template("admin/reports.html")
+    # ------------------------------------------------------
+    # Date filters
+    # ------------------------------------------------------
 
+    start_date = request.args.get(
+        "start_date",
+        ""
+    ).strip()
+
+    end_date = request.args.get(
+        "end_date",
+        ""
+    ).strip()
+
+    # ------------------------------------------------------
+    # Report statistics
+    # ------------------------------------------------------
+
+    stats = AdminModel.get_report_statistics(
+        start_date,
+        end_date
+    )
+
+    # ------------------------------------------------------
+    # Booking report
+    # ------------------------------------------------------
+
+    booking_report = AdminModel.get_booking_report(
+        start_date,
+        end_date
+    )
+
+    # ------------------------------------------------------
+    # Payment report
+    # ------------------------------------------------------
+
+    payment_report = AdminModel.get_payment_report(
+        start_date,
+        end_date
+    )
+
+    # ------------------------------------------------------
+    # Vehicle report
+    # ------------------------------------------------------
+
+    vehicle_report = AdminModel.get_vehicle_report()
+
+    # ------------------------------------------------------
+    # Customer report
+    # ------------------------------------------------------
+
+    customer_report = AdminModel.get_customer_report()
+
+    return render_template(
+        "admin/reports.html",
+
+        stats=stats,
+
+        booking_report=booking_report,
+
+        payment_report=payment_report,
+
+        vehicle_report=vehicle_report,
+
+        customer_report=customer_report,
+
+        start_date=start_date,
+
+        end_date=end_date
+    )
 
 # --------------------------------------------
 # Settings
