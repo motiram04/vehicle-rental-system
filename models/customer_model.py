@@ -529,9 +529,9 @@ class CustomerModel:
 
         try:
 
-            # -------------------------------------------------
-            # Get booking and verify ownership
-            # -------------------------------------------------
+            # =====================================================
+            # GET BOOKING
+            # =====================================================
 
             cursor.execute("""
                 SELECT
@@ -540,7 +540,7 @@ class CustomerModel:
                     v.vehicle_name
                 FROM bookings b
 
-                JOIN vehicles v
+                INNER JOIN vehicles v
                     ON b.vehicle_id = v.vehicle_id
 
                 WHERE
@@ -559,13 +559,15 @@ class CustomerModel:
 
                 return False, "Booking not found."
 
-            current_status = str(
-                booking["booking_status"]
-            ).lower()
 
-            # -------------------------------------------------
-            # Already cancelled
-            # -------------------------------------------------
+            current_status = str(
+                booking["booking_status"] or ""
+            ).strip().lower()
+
+
+            # =====================================================
+            # ALREADY CANCELLED
+            # =====================================================
 
             if current_status == "cancelled":
 
@@ -573,9 +575,10 @@ class CustomerModel:
 
                 return False, "This booking is already cancelled."
 
-            # -------------------------------------------------
-            # Completed booking cannot be cancelled
-            # -------------------------------------------------
+
+            # =====================================================
+            # COMPLETED CANNOT BE CANCELLED
+            # =====================================================
 
             if current_status == "completed":
 
@@ -583,9 +586,10 @@ class CustomerModel:
 
                 return False, "Completed bookings cannot be cancelled."
 
-            # -------------------------------------------------
-            # Rejected booking cannot be cancelled
-            # -------------------------------------------------
+
+            # =====================================================
+            # REJECTED CANNOT BE CANCELLED
+            # =====================================================
 
             if current_status == "rejected":
 
@@ -593,28 +597,25 @@ class CustomerModel:
 
                 return False, "Rejected bookings cannot be cancelled."
 
-            # -------------------------------------------------
-            # Only Pending / Approved can be cancelled
-            # -------------------------------------------------
 
-            if current_status not in (
-                "pending",
-                "approved"
-            ):
+            # =====================================================
+            # ONLY PENDING / APPROVED CAN BE CANCELLED
+            # =====================================================
+
+            if current_status not in ["pending", "approved"]:
 
                 cursor.close()
 
                 return False, "This booking cannot be cancelled."
 
-            # -------------------------------------------------
-            # Cancel booking
-            # -------------------------------------------------
+
+            # =====================================================
+            # CANCEL BOOKING
+            # =====================================================
 
             cursor.execute("""
                 UPDATE bookings
-
                 SET booking_status = 'Cancelled'
-
                 WHERE
                     booking_id = %s
                     AND customer_id = %s
@@ -623,26 +624,25 @@ class CustomerModel:
                 customer_id
             ))
 
-            # -------------------------------------------------
-            # If booking was Approved,
-            # make vehicle available again
-            # -------------------------------------------------
+
+            # =====================================================
+            # RELEASE VEHICLE
+            # =====================================================
 
             if current_status == "approved":
 
                 cursor.execute("""
                     UPDATE vehicles
-
                     SET availability_status = 'Available'
-
                     WHERE vehicle_id = %s
                 """, (
                     booking["vehicle_id"],
                 ))
 
-            # -------------------------------------------------
-            # Commit
-            # -------------------------------------------------
+
+            # =====================================================
+            # COMMIT
+            # =====================================================
 
             mysql.connection.commit()
 
@@ -653,6 +653,7 @@ class CustomerModel:
                 f"has been cancelled successfully."
             )
 
+
         except Exception as e:
 
             mysql.connection.rollback()
@@ -661,4 +662,5 @@ class CustomerModel:
 
             print("Cancel booking error:", e)
 
-            return False, "Unable to cancel booking."
+            return False, "Unable to cancel booking."    
+            

@@ -22,11 +22,11 @@
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
+    {% if messages %}
 
-            {% for category, message in messages %}
+    {% for category, message in messages %}
 
-                <div class="mb-4 p-4 rounded-lg
+    <div class="mb-4 p-4 rounded-lg
                     {% if category=='success' %}
                         bg-green-100 text-green-700
                     {% elif category=='danger' %}
@@ -35,13 +35,13 @@
                         bg-blue-100 text-blue-700
                     {% endif %}">
 
-                    {{ message }}
+        {{ message }}
 
-                </div>
+    </div>
 
-            {% endfor %}
+    {% endfor %}
 
-        {% endif %}
+    {% endif %}
     {% endwith %}
 
     {% if bookings %}
@@ -78,154 +78,203 @@
 
             <tbody>
 
-            {% for booking in bookings %}
+                {% for booking in bookings %}
 
-            <tr class="border-b hover:bg-gray-50 text-center">
+                <tr class="border-b hover:bg-gray-50 text-center">
 
-                <!-- Image -->
-                <td class="py-3">
+                    <!-- Image -->
+                    <td class="py-3">
 
-                    <img
-                        src="{{ url_for('static', filename='uploads/vehicles/' + booking.image) }}"
-                        class="w-24 h-16 object-cover rounded-lg mx-auto">
+                        <img src="{{ url_for('static', filename='uploads/vehicles/' + booking.image) }}"
+                            class="w-24 h-16 object-cover rounded-lg mx-auto">
 
-                </td>
+                    </td>
 
-                <!-- Customer -->
+                    <!-- Customer -->
 
-                <td>
+                    <td>
 
-                    <div class="font-semibold">
+                        <div class="font-semibold">
 
-                        {{ booking.customer_name }}
+                            {{ booking.customer_name }}
 
-                    </div>
+                        </div>
 
-                    <div class="text-sm text-gray-500">
+                        <div class="text-sm text-gray-500">
 
-                        {{ booking.email }}
+                            {{ booking.email }}
 
-                    </div>
+                        </div>
 
-                </td>
+                    </td>
 
-                <!-- Vehicle -->
+                    <!-- Vehicle -->
 
-                <td>
+                    <td>
 
-                    <div class="font-semibold">
+                        <div class="font-semibold">
 
-                        {{ booking.vehicle_name }}
+                            {{ booking.vehicle_name }}
 
-                    </div>
+                        </div>
 
-                    <div class="text-sm text-gray-500">
+                        <div class="text-sm text-gray-500">
 
-                        {{ booking.vehicle_number }}
+                            {{ booking.vehicle_number }}
 
-                    </div>
+                        </div>
 
-                </td>
+                    </td>
 
-                <!-- Pickup -->
+                    <!-- Pickup -->
 
-                <td>
+                    <td>
 
-                    {{ booking.pickup_date }}
+                        {{ booking.pickup_date }}
 
-                </td>
+                    </td>
 
-                <!-- Return -->
+                    <!-- Return -->
 
-                <td>
+                    <td>
 
-                    {{ booking.return_date }}
+                        {{ booking.return_date }}
 
-                </td>
+                    </td>
 
-                <!-- Days -->
+                    <!-- Days -->
 
-                <td>
+                    <td>
 
-                    {{ booking.total_days }}
+                        {{ booking.total_days }}
 
-                </td>
+                    </td>
 
-                <!-- Amount -->
+                    <!-- Amount -->
 
-                <td class="font-bold text-green-600">
+                    <td class="font-bold text-green-600">
 
-                    Rs. {{ booking.total_amount }}
+                        Rs. {{ booking.total_amount }}
 
-                </td>
+                    </td>
 
-                <!-- Status -->
+                    <!-- Status -->
+                    <td>
 
-                <td>
+                        {% if booking.booking_status|lower == "pending" %}
 
-                    {% if booking.booking_status == "Pending" %}
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-yellow-100 text-yellow-700
+                     text-sm font-semibold">
 
-                        <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm">
-
+                            <i class="fa-solid fa-clock"></i>
                             Pending
 
                         </span>
 
-                    {% elif booking.booking_status == "Approved" %}
 
-                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
+                        {% elif booking.booking_status|lower == "approved" %}
 
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-green-100 text-green-700
+                     text-sm font-semibold">
+
+                            <i class="fa-solid fa-check"></i>
                             Approved
 
                         </span>
 
-                    {% elif booking.booking_status == "Rejected" %}
 
-                        <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm">
+                        {% elif booking.booking_status|lower == "rejected" %}
 
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-red-100 text-red-700
+                     text-sm font-semibold">
+
+                            <i class="fa-solid fa-xmark"></i>
                             Rejected
 
                         </span>
 
-                    {% endif %}
 
-                </td>
+                        {% elif booking.booking_status|lower == "cancelled" %}
 
-                <!-- Action -->
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-gray-100 text-gray-700
+                     text-sm font-semibold">
 
-                <td>
+                            <i class="fa-solid fa-ban"></i>
+                            Cancelled
 
-                    {% if booking.booking_status == "Pending" %}
+                        </span>
 
-                    <a href="{{ url_for('owner.approve_booking', booking_id=booking.booking_id) }}"
-                       class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm">
 
-                        Approve
+                        {% elif booking.booking_status|lower == "completed" %}
 
-                    </a>
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-purple-100 text-purple-700
+                     text-sm font-semibold">
 
-                    <a href="{{ url_for('owner.reject_booking', booking_id=booking.booking_id) }}"
-                       class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm ml-2">
+                            <i class="fa-solid fa-flag-checkered"></i>
+                            Completed
 
-                        Reject
+                        </span>
 
-                    </a>
 
-                    {% else %}
+                        {% else %}
 
-                    <span class="text-gray-400">
+                        <span class="inline-flex items-center gap-2
+                     px-3 py-1 rounded-full
+                     bg-gray-100 text-gray-700
+                     text-sm font-semibold">
 
-                        Completed
+                            {{ booking.booking_status }}
 
-                    </span>
+                        </span>
 
-                    {% endif %}
+                        {% endif %}
 
-                </td>
+                    </td>
+                    <!-- Action -->
 
-            </tr>
+                    <td>
 
-            {% endfor %}
+                        {% if booking.booking_status == "Pending" %}
+
+                        <a href="{{ url_for('owner.approve_booking', booking_id=booking.booking_id) }}"
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm">
+
+                            Approve
+
+                        </a>
+
+                        <a href="{{ url_for('owner.reject_booking', booking_id=booking.booking_id) }}"
+                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm ml-2">
+
+                            Reject
+
+                        </a>
+
+                        {% else %}
+
+                        <span class="text-gray-400">
+
+                            Completed
+
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
 
             </tbody>
 
