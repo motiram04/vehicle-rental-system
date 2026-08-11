@@ -511,11 +511,12 @@ def reject_booking(booking_id):
         url_for("admin.bookings")
     )
 
-# --------------------------------------------
-# Payment Management
-# --------------------------------------------
 
-@admin.route("/payments")
+# ==========================================================
+# PAYMENT MANAGEMENT
+# ==========================================================
+
+@admin.route("/admin/payments")
 def payments():
 
     check = admin_required()
@@ -523,10 +524,108 @@ def payments():
     if check:
         return check
 
-    return render_template("admin/payments.html")
+    search = request.args.get(
+        "search",
+        ""
+    ).strip()
+
+    status = request.args.get(
+        "status",
+        ""
+    ).strip()
 
 
-# --------------------------------------------
+    stats = AdminModel.get_payment_statistics()
+
+
+    if search or status:
+
+        payments = AdminModel.search_payments(
+            search,
+            status
+        )
+
+    else:
+
+        payments = AdminModel.get_all_payments()
+
+
+    return render_template(
+        "admin/payments.html",
+        payments=payments,
+        stats=stats,
+        search=search,
+        status=status
+    )
+
+
+# ==========================================================
+# UPDATE PAYMENT STATUS
+# ==========================================================
+
+@admin.route(
+    "/admin/payments/status/<int:payment_id>",
+    methods=["POST"]
+)
+def update_payment_status(payment_id):
+
+    check = admin_required()
+
+    if check:
+        return check
+
+
+    new_status = request.form.get(
+        "payment_status",
+        ""
+    ).strip()
+
+
+    allowed_statuses = {
+        "Pending",
+        "Paid",
+        "Failed",
+        "Completed"
+    }
+
+
+    if new_status not in allowed_statuses:
+
+        flash(
+            "Invalid payment status.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin.payments")
+        )
+
+
+    success = AdminModel.update_payment_status(
+        payment_id,
+        new_status
+    )
+
+
+    if success:
+
+        flash(
+            f"Payment status changed to {new_status}.",
+            "success"
+        )
+
+    else:
+
+        flash(
+            "Payment not found.",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for("admin.payments")
+    )
+    # --------------------------------------------
 # Reports
 # --------------------------------------------
 

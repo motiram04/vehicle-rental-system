@@ -5,6 +5,7 @@ from controllers.admin_controller import admin
 from controllers.owner_controller import owner
 from controllers.auth_controller import auth
 from controllers.customer_controller import customer
+from controllers.payment_controller import payment
 
 app = Flask(__name__)
 
@@ -18,10 +19,10 @@ app.register_blueprint(auth)
 
 app.register_blueprint(admin)
 
-
 app.register_blueprint(owner)
-
-
 app.register_blueprint(customer)
+app.register_blueprint(payment)
+
+
 if __name__ == "__main__":
     app.run(debug=True)

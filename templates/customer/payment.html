@@ -1,0 +1,529 @@
+{% extends "customer/layout/base.html" %}
+
+{% block title %}Payment{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <!-- HEADER -->
+
+    <div class="mb-8">
+
+        <p class="text-sm font-semibold
+                  text-blue-600
+                  uppercase tracking-wide">
+
+            Secure Payment
+
+        </p>
+
+        <h1 class="text-3xl font-bold
+                   text-gray-800 mt-1">
+
+            Complete Your Payment
+
+        </h1>
+
+        <p class="text-gray-500 mt-2">
+
+            Complete payment for your approved vehicle booking.
+
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1
+                lg:grid-cols-3 gap-6">
+
+
+        <!-- ============================================ -->
+        <!-- BOOKING SUMMARY -->
+        <!-- ============================================ -->
+
+        <div class="lg:col-span-1">
+
+            <div class="bg-white
+                        rounded-2xl
+                        shadow
+                        border border-gray-100
+                        overflow-hidden">
+
+                {% if booking.image %}
+
+                <img src="{{ url_for(
+                    'static',
+                    filename='uploads/vehicles/' + booking.image
+                ) }}" class="w-full h-48
+                            object-cover">
+
+                {% else %}
+
+                <div class="w-full h-48
+                            bg-gray-100
+                            flex items-center
+                            justify-center">
+
+                    <i class="fa-solid fa-car
+                              text-5xl text-gray-400"></i>
+
+                </div>
+
+                {% endif %}
+
+
+                <div class="p-5">
+
+                    <p class="text-xs
+                              text-gray-400">
+
+                        Booking #{{ booking.booking_id }}
+
+                    </p>
+
+                    <h2 class="text-xl
+                               font-bold
+                               text-gray-800 mt-1">
+
+                        {{ booking.vehicle_name }}
+
+                    </h2>
+
+                    <p class="text-gray-500 mt-1">
+
+                        Owner:
+                        {{ booking.owner_name }}
+
+                    </p>
+
+
+                    <div class="border-t
+                                mt-5 pt-5
+                                space-y-3">
+
+                        <div class="flex
+                                    justify-between">
+
+                            <span class="text-gray-500">
+
+                                Pickup
+
+                            </span>
+
+                            <span class="font-semibold">
+
+                                {{ booking.pickup_date }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="flex
+                                    justify-between">
+
+                            <span class="text-gray-500">
+
+                                Return
+
+                            </span>
+
+                            <span class="font-semibold">
+
+                                {{ booking.return_date }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="flex
+                                    justify-between">
+
+                            <span class="text-gray-500">
+
+                                Duration
+
+                            </span>
+
+                            <span class="font-semibold">
+
+                                {{ booking.total_days }} days
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="border-t
+                                mt-5 pt-5
+                                flex justify-between
+                                items-center">
+
+                        <span class="text-gray-600">
+
+                            Total Amount
+
+                        </span>
+
+                        <span class="text-2xl
+                                     font-bold
+                                     text-blue-600">
+
+                            Rs. {{ booking.total_amount }}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ============================================ -->
+        <!-- PAYMENT FORM -->
+        <!-- ============================================ -->
+
+        <div class="lg:col-span-2">
+
+            <div class="bg-white
+                        rounded-2xl
+                        shadow
+                        border border-gray-100
+                        p-6">
+
+                <h2 class="text-xl
+                           font-bold
+                           text-gray-800">
+
+                    Select Payment Method
+
+                </h2>
+
+                <p class="text-gray-500
+                          text-sm mt-1">
+
+                    Choose how you want to pay.
+
+                </p>
+
+
+                <form method="POST" action="{{ url_for(
+                          'payment.process_payment',
+                          booking_id=booking.booking_id
+                      ) }}" class="mt-6">
+
+
+                    <!-- PAYMENT METHODS -->
+
+                    <div class="grid grid-cols-1
+                                md:grid-cols-3 gap-4">
+
+
+                        <!-- CASH -->
+
+                        <label class="payment-method
+                                      border-2
+                                      border-gray-200
+                                      rounded-xl
+                                      p-5
+                                      cursor-pointer
+                                      hover:border-green-500
+                                      transition">
+
+                            <input type="radio" name="payment_method" value="Cash" class="payment-radio" checked>
+
+                            <div class="text-center">
+
+                                <div class="w-14 h-14
+                                            mx-auto
+                                            rounded-full
+                                            bg-green-100
+                                            text-green-600
+                                            flex items-center
+                                            justify-center">
+
+                                    <i class="fa-solid fa-money-bill-wave
+                                              text-2xl"></i>
+
+                                </div>
+
+                                <h3 class="font-bold
+                                           text-gray-800 mt-3">
+
+                                    Cash
+
+                                </h3>
+
+                                <p class="text-xs
+                                          text-gray-500 mt-1">
+
+                                    Pay in cash
+
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- ESEWA -->
+
+                        <label class="payment-method
+                                      border-2
+                                      border-gray-200
+                                      rounded-xl
+                                      p-5
+                                      cursor-pointer
+                                      hover:border-green-500
+                                      transition">
+
+                            <input type="radio" name="payment_method" value="eSewa" class="payment-radio">
+
+                            <div class="text-center">
+
+                                <div class="w-14 h-14
+                                            mx-auto
+                                            rounded-full
+                                            bg-green-100
+                                            text-green-600
+                                            flex items-center
+                                            justify-center">
+
+                                    <span class="font-bold
+                                                 text-lg">
+
+                                        eSewa
+
+                                    </span>
+
+                                </div>
+
+                                <h3 class="font-bold
+                                           text-gray-800 mt-3">
+
+                                    eSewa
+
+                                </h3>
+
+                                <p class="text-xs
+                                          text-gray-500 mt-1">
+
+                                    Online payment
+
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- KHALTI -->
+
+                        <label class="payment-method
+                                      border-2
+                                      border-gray-200
+                                      rounded-xl
+                                      p-5
+                                      cursor-pointer
+                                      hover:border-purple-500
+                                      transition">
+
+                            <input type="radio" name="payment_method" value="Khalti" class="payment-radio">
+
+                            <div class="text-center">
+
+                                <div class="w-14 h-14
+                                            mx-auto
+                                            rounded-full
+                                            bg-purple-100
+                                            text-purple-600
+                                            flex items-center
+                                            justify-center">
+
+                                    <span class="font-bold">
+
+                                        K
+
+                                    </span>
+
+                                </div>
+
+                                <h3 class="font-bold
+                                           text-gray-800 mt-3">
+
+                                    Khalti
+
+                                </h3>
+
+                                <p class="text-xs
+                                          text-gray-500 mt-1">
+
+                                    Online payment
+
+                                </p>
+
+                            </div>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- TRANSACTION ID -->
+
+                    <div id="transaction-section" class="hidden mt-6">
+
+                        <label class="block
+                                      text-sm
+                                      font-semibold
+                                      text-gray-700
+                                      mb-2">
+
+                            Transaction ID
+
+                        </label>
+
+                        <input type="text" name="transaction_id" id="transaction_id" placeholder="Enter transaction ID"
+                            class="w-full
+                                      border border-gray-300
+                                      rounded-xl
+                                      px-4 py-3
+                                      focus:ring-2
+                                      focus:ring-blue-500
+                                      focus:outline-none">
+
+                        <p class="text-xs
+                                  text-gray-500 mt-2">
+
+                            Enter the transaction/reference
+                            ID received after your online payment.
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- PAYMENT BUTTON -->
+
+                    <button type="submit" class="w-full mt-8
+                                   bg-blue-600
+                                   hover:bg-blue-700
+                                   text-white
+                                   py-4
+                                   rounded-xl
+                                   font-bold
+                                   transition
+                                   shadow">
+
+                        <i class="fa-solid fa-lock mr-2"></i>
+
+                        Complete Payment
+
+                    </button>
+
+
+                    <a href="{{ url_for(
+                        'customer.bookings'
+                    ) }}" class="block text-center
+                              mt-4
+                              text-gray-500
+                              hover:text-gray-700
+                              text-sm">
+
+                        ← Back to My Bookings
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================ -->
+
+<script>
+
+    const radios =
+        document.querySelectorAll(
+            ".payment-radio"
+        );
+
+    const transactionSection =
+        document.getElementById(
+            "transaction-section"
+        );
+
+    const transactionInput =
+        document.getElementById(
+            "transaction_id"
+        );
+
+
+    function updatePaymentMethod() {
+
+        const selected =
+            document.querySelector(
+                ".payment-radio:checked"
+            );
+
+        if (!selected) return;
+
+
+        if (
+            selected.value === "eSewa" ||
+            selected.value === "Khalti"
+        ) {
+
+            transactionSection.classList.remove(
+                "hidden"
+            );
+
+            transactionInput.required = true;
+
+        } else {
+
+            transactionSection.classList.add(
+                "hidden"
+            );
+
+            transactionInput.required = false;
+
+            transactionInput.value = "";
+
+        }
+
+    }
+
+
+    radios.forEach(
+        radio => {
+
+            radio.addEventListener(
+                "change",
+                updatePaymentMethod
+            );
+
+        }
+    );
+
+
+    updatePaymentMethod();
+
+</script>
+
+{% endblock %}

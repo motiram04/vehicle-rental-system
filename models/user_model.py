@@ -84,6 +84,28 @@ class UserModel:
             hashed_password,
             password
         )
+    @staticmethod
+    def change_password(user_id, new_password):
+
+        cursor = mysql.connection.cursor()
+
+        hashed_password = generate_password_hash(new_password)
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET password=%s
+            WHERE user_id=%s
+            """,
+            (
+                hashed_password,
+                user_id
+            )
+        )
+
+        mysql.connection.commit()
+
+        cursor.close()
 
     @staticmethod
     def update_last_login(user_id):

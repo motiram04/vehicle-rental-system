@@ -1112,3 +1112,287 @@ class AdminModel:
         mysql.connection.commit()
 
         cursor.close()
+        
+        
+     # ==========================================================
+# PAYMENT MANAGEMENT
+# ==========================================================
+
+    @staticmethod
+    def get_payment_statistics():
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            SELECT
+
+                COUNT(*) AS total_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status))
+                            IN (
+                                'paid',
+                                'completed',
+                                'successful',
+                                'success'
+                            )
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS paid_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status)) = 'pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status)) = 'failed'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS failed_payments,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN LOWER(TRIM(payment_status))
+                            IN (
+                                'paid',
+                                'completed',
+                                'successful',
+                                'success'
+                            )
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_revenue
+
+            FROM payments
+        """)
+
+        stats = cursor.fetchone()
+
+        cursor.close()
+
+        return stats
+
+
+    # ==========================================================
+    # GET ALL PAYMENTS
+    # ==========================================================
+
+    @staticmethod
+    def get_all_payments():
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                p.payment_id,
+                p.booking_id,
+                p.amount,
+                p.payment_method,
+                p.transaction_id,
+                p.payment_status,
+                p.payment_date,
+
+                customer.full_name AS customer_name,
+
+                owner.full_name AS owner_name,
+
+                v.vehicle_name,
+                v.vehicle_number,
+
+                b.pickup_date,
+                b.return_date
+
+            FROM payments p
+
+            INNER JOIN bookings b
+                ON p.booking_id = b.booking_id
+
+            INNER JOIN users customer
+                ON b.customer_id = customer.user_id
+
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            INNER JOIN users owner
+                ON v.owner_id = owner.user_id
+
+            ORDER BY p.payment_id DESC
+        """
+
+        cursor.execute(query)
+
+        payments = cursor.fetchall()
+
+        cursor.close()
+
+        return payments
+
+
+    # ==========================================================
+    # SEARCH PAYMENTS
+    # ==========================================================
+
+    @staticmethod
+    def search_payments(
+        search="",
+        status=""
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+
+                p.payment_id,
+                p.booking_id,
+                p.amount,
+                p.payment_method,
+                p.transaction_id,
+                p.payment_status,
+                p.payment_date,
+
+                customer.full_name AS customer_name,
+
+                owner.full_name AS owner_name,
+
+                v.vehicle_name,
+                v.vehicle_number,
+
+                b.pickup_date,
+                b.return_date
+
+            FROM payments p
+
+            INNER JOIN bookings b
+                ON p.booking_id = b.booking_id
+
+            INNER JOIN users customer
+                ON b.customer_id = customer.user_id
+
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            INNER JOIN users owner
+                ON v.owner_id = owner.user_id
+
+            WHERE
+            (
+                CAST(p.payment_id AS CHAR) LIKE %s
+                OR CAST(p.booking_id AS CHAR) LIKE %s
+                OR customer.full_name LIKE %s
+                OR owner.full_name LIKE %s
+                OR v.vehicle_name LIKE %s
+                OR v.vehicle_number LIKE %s
+                OR COALESCE(p.transaction_id, '') LIKE %s
+            )
+        """
+
+        values = [
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%"
+        ]
+
+
+        if status:
+
+            if status.lower() in {
+                "paid",
+                "completed",
+                "successful",
+                "success"
+            }:
+
+                query += """
+                    AND LOWER(TRIM(p.payment_status))
+                    IN (
+                        'paid',
+                        'completed',
+                        'successful',
+                        'success'
+                    )
+                """
+
+            else:
+
+                query += """
+                    AND LOWER(TRIM(p.payment_status))
+                    = LOWER(%s)
+                """
+
+                values.append(status)
+
+
+        query += """
+            ORDER BY p.payment_id DESC
+        """
+
+
+        cursor.execute(
+            query,
+            values
+        )
+
+        payments = cursor.fetchall()
+
+        cursor.close()
+
+        return payments
+
+
+    # ==========================================================
+    # UPDATE PAYMENT STATUS
+    # ==========================================================
+
+    @staticmethod
+    def update_payment_status(
+        payment_id,
+        status
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            UPDATE payments
+
+            SET payment_status = %s
+
+            WHERE payment_id = %s
+        """, (
+            status,
+            payment_id
+        ))
+
+        affected_rows = cursor.rowcount
+
+        mysql.connection.commit()
+
+        cursor.close()
+
+        return affected_rows > 0

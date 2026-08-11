@@ -1,0 +1,11 @@
+@customer.route("/customer/vehicles")
+def vehicles():
+
+    check = customer_required()
+
+    if check:
+        return check
+
+    return redirect(
+        url_for("customer.dashboard")
+    )

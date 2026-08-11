@@ -1,0 +1,401 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}
+Settings
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ==========================================
+         HEADER
+    =========================================== -->
+
+    <div class="mb-8">
+
+        <h1 class="text-2xl font-bold text-gray-800">
+            Settings
+        </h1>
+
+        <p class="text-gray-500 mt-1">
+            Manage your owner account and security settings.
+        </p>
+
+    </div>
+
+
+    <!-- ==========================================
+         SETTINGS GRID
+    =========================================== -->
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+
+        <!-- ======================================
+             ACCOUNT INFORMATION
+        ======================================= -->
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+            <div class="px-6 py-4 border-b border-gray-100">
+
+                <h2 class="text-lg font-semibold text-gray-800">
+                    Account Information
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Your registered owner account information.
+                </p>
+
+            </div>
+
+
+            <div class="p-6">
+
+                <!-- Full Name -->
+
+                <div class="mb-5">
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Full Name
+                    </label>
+
+                    <input type="text" value="{{ owner.full_name }}" readonly
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none">
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="mb-5">
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Email
+                    </label>
+
+                    <input type="email" value="{{ owner.email }}" readonly
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none">
+
+                </div>
+
+
+                <!-- Phone -->
+
+                <div class="mb-5">
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Phone
+                    </label>
+
+                    <input type="text" value="{{ owner.phone or 'Not provided' }}" readonly
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none">
+
+                </div>
+
+
+                <!-- Role -->
+
+                <div class="mb-5">
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Role
+                    </label>
+
+                    <input type="text" value="{{ owner.role|capitalize }}" readonly
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none">
+
+                </div>
+
+
+                <!-- Status -->
+
+                <div class="mb-5">
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Account Status
+                    </label>
+
+                    {% if owner.status|lower == "active" %}
+
+                    <span
+                        class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700">
+
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+
+                        Active
+
+                    </span>
+
+                    {% else %}
+
+                    <span
+                        class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-700">
+
+                        <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+
+                        Inactive
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Created -->
+
+                <div>
+
+                    <label class="block text-sm font-medium text-gray-600 mb-2">
+                        Account Created
+                    </label>
+
+                    <p class="text-gray-700">
+                        {{ owner.created_at }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================
+             SECURITY
+        ======================================= -->
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+            <div class="px-6 py-4 border-b border-gray-100">
+
+                <h2 class="text-lg font-semibold text-gray-800">
+                    Security
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Manage your account password.
+                </p>
+
+            </div>
+
+
+            <div class="p-6">
+
+
+                <!-- Security Icon -->
+
+                <div
+                    class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 text-2xl mb-5">
+
+                    <i class="fa-solid fa-lock"></i>
+
+                </div>
+
+
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+
+                    Password & Security
+
+                </h3>
+
+
+                <p class="text-gray-500 text-sm mb-6">
+
+                    Keep your owner account secure by using a strong password.
+
+                </p>
+
+
+                <!-- Change Password Button -->
+
+                <button type="button" onclick="openPasswordModal()"
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+
+                    <i class="fa-solid fa-key mr-2"></i>
+
+                    Change Password
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     CHANGE PASSWORD MODAL
+====================================================== -->
+
+<div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+
+
+        <!-- Header -->
+
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+
+            <h2 class="text-lg font-bold text-gray-800">
+
+                Change Password
+
+            </h2>
+
+
+            <button type="button" onclick="closePasswordModal()" class="text-gray-400 hover:text-gray-600 text-xl">
+
+                &times;
+
+            </button>
+
+        </div>
+
+
+        <!-- Form -->
+
+        <form method="POST" action="{{ url_for('owner.change_password') }}">
+
+            <div class="p-6">
+
+
+                <!-- Current Password -->
+
+                <div class="mb-4">
+
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+
+                        Current Password
+
+                    </label>
+
+                    <input type="password" name="current_password" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+
+                </div>
+
+
+                <!-- New Password -->
+
+                <div class="mb-4">
+
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+
+                        New Password
+
+                    </label>
+
+                    <input type="password" name="new_password" minlength="6" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+
+                </div>
+
+
+                <!-- Confirm Password -->
+
+                <div>
+
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+
+                        Confirm New Password
+
+                    </label>
+
+                    <input type="password" name="confirm_password" minlength="6" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+
+                </div>
+
+            </div>
+
+
+            <!-- Footer -->
+
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+
+                <button type="button" onclick="closePasswordModal()"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">
+
+                    Cancel
+
+                </button>
+
+
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+
+                    <i class="fa-solid fa-check mr-1"></i>
+
+                    Update Password
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL JAVASCRIPT
+====================================================== -->
+
+<script>
+
+    function openPasswordModal() {
+
+        const modal = document.getElementById(
+            "changePasswordModal"
+        );
+
+        modal.classList.remove("hidden");
+
+        modal.classList.add("flex");
+
+    }
+
+
+    function closePasswordModal() {
+
+        const modal = document.getElementById(
+            "changePasswordModal"
+        );
+
+        modal.classList.remove("flex");
+
+        modal.classList.add("hidden");
+
+    }
+
+
+    // Close modal when clicking outside
+
+    document.getElementById(
+        "changePasswordModal"
+    ).addEventListener(
+        "click",
+        function (event) {
+
+            if (event.target === this) {
+
+                closePasswordModal();
+
+            }
+
+        }
+    );
+
+</script>
+
+{% endblock %}

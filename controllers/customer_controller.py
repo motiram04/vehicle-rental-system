@@ -1,3 +1,6 @@
+import os
+import uuid
+
 from flask import (
     Blueprint,
     flash,
@@ -5,8 +8,11 @@ from flask import (
     session,
     redirect,
     url_for,
-    request
+    request,
+    current_app
 )
+
+from werkzeug.utils import secure_filename
 
 from models.customer_model import CustomerModel
 
@@ -28,16 +34,12 @@ customer = Blueprint(
 def customer_required():
 
     if "user_id" not in session:
-
         return redirect(
             url_for("auth.login")
         )
 
-
     if session.get("role") != "customer":
-
         return "Access Denied", 403
-
 
     return None
 
@@ -54,9 +56,8 @@ def dashboard():
     if check:
         return check
 
-
     # -----------------------------------------------------
-    # Get filter values
+    # Filter values
     # -----------------------------------------------------
 
     search = request.args.get(
@@ -64,18 +65,15 @@ def dashboard():
         ""
     ).strip()
 
-
     category_id = request.args.get(
         "category",
         ""
     ).strip()
 
-
     max_price = request.args.get(
         "max_price",
         ""
     ).strip()
-
 
     # -----------------------------------------------------
     # Get vehicles
@@ -103,10 +101,8 @@ def dashboard():
 
         try:
 
-            price = float(max_price)
-
             vehicles = CustomerModel.filter_price(
-                price
+                float(max_price)
             )
 
         except (ValueError, TypeError):
@@ -117,18 +113,15 @@ def dashboard():
 
         vehicles = CustomerModel.get_all_vehicles()
 
-
     # -----------------------------------------------------
-    # Apply price filter together with search/category
+    # Apply price filter
     # -----------------------------------------------------
 
     if max_price:
 
         try:
 
-            max_price_value = float(
-                max_price
-            )
+            max_price_value = float(max_price)
 
             vehicles = [
                 vehicle
@@ -140,63 +133,53 @@ def dashboard():
 
         except (
             ValueError,
-            TypeError
+            TypeError,
+            KeyError
         ):
 
             pass
-
 
     # -----------------------------------------------------
     # Categories
     # -----------------------------------------------------
 
-    categories = (
-        CustomerModel.get_categories()
-    )
+    categories = CustomerModel.get_categories()
 
+    # -----------------------------------------------------
+    # Customer
+    # -----------------------------------------------------
+
+    customer_id = session["user_id"]
 
     # -----------------------------------------------------
     # Statistics
     # -----------------------------------------------------
 
-    total_vehicles = len(
-        CustomerModel.get_all_vehicles()
-    )
+    all_vehicles = CustomerModel.get_all_vehicles()
 
+    total_vehicles = len(all_vehicles)
 
-    available_vehicles = len(
-        CustomerModel.get_all_vehicles()
-    )
-
+    available_vehicles = len(all_vehicles)
 
     # -----------------------------------------------------
     # Customer bookings
     # -----------------------------------------------------
 
-    customer_id = session["user_id"]
-
     try:
 
-        bookings = (
-            CustomerModel
-            .get_customer_bookings(
-                customer_id
-            )
+        bookings = CustomerModel.get_customer_bookings(
+            customer_id
         )
 
     except Exception:
 
         bookings = []
 
-
     # -----------------------------------------------------
     # Booking statistics
     # -----------------------------------------------------
 
-    total_bookings = len(
-        bookings
-    )
-
+    total_bookings = len(bookings)
 
     pending_bookings = len([
         booking
@@ -209,7 +192,6 @@ def dashboard():
         ).lower() == "pending"
     ])
 
-
     approved_bookings = len([
         booking
         for booking in bookings
@@ -220,7 +202,6 @@ def dashboard():
             )
         ).lower() == "approved"
     ])
-
 
     completed_bookings = len([
         booking
@@ -233,13 +214,11 @@ def dashboard():
         ).lower() == "completed"
     ])
 
-
     # -----------------------------------------------------
     # Total spending
     # -----------------------------------------------------
 
     total_spent = 0
-
 
     for booking in bookings:
 
@@ -249,7 +228,6 @@ def dashboard():
                 ""
             )
         ).lower()
-
 
         if status in [
             "approved",
@@ -271,7 +249,6 @@ def dashboard():
             ):
 
                 pass
-
 
     # -----------------------------------------------------
     # Dashboard stats
@@ -299,12 +276,10 @@ def dashboard():
 
         "total_spent":
             total_spent
-
     }
 
-
     # -----------------------------------------------------
-    # Render
+    # Render dashboard
     # -----------------------------------------------------
 
     return render_template(
@@ -324,7 +299,6 @@ def dashboard():
         category_id=category_id,
 
         max_price=max_price
-
     )
 
 
@@ -342,14 +316,9 @@ def vehicle_details(vehicle_id):
     if check:
         return check
 
-
-    vehicle = (
-        CustomerModel
-        .get_vehicle_by_id(
-            vehicle_id
-        )
+    vehicle = CustomerModel.get_vehicle_by_id(
+        vehicle_id
     )
-
 
     if not vehicle:
 
@@ -364,13 +333,11 @@ def vehicle_details(vehicle_id):
             )
         )
 
-
     return render_template(
 
         "customer/vehicle_details.html",
 
         vehicle=vehicle
-
     )
 
 
@@ -389,19 +356,15 @@ def book_vehicle(vehicle_id):
     if check:
         return check
 
-
     customer_id = session["user_id"]
-
 
     pickup_date = request.form.get(
         "pickup_date"
     )
 
-
     return_date = request.form.get(
         "return_date"
     )
-
 
     if not pickup_date or not return_date:
 
@@ -417,22 +380,17 @@ def book_vehicle(vehicle_id):
             )
         )
 
-
-    success, message = (
-        CustomerModel.book_vehicle(
-            vehicle_id,
-            customer_id,
-            pickup_date,
-            return_date
-        )
+    success, message = CustomerModel.book_vehicle(
+        vehicle_id,
+        customer_id,
+        pickup_date,
+        return_date
     )
-
 
     flash(
         message,
         "success" if success else "danger"
     )
-
 
     if success:
 
@@ -441,7 +399,6 @@ def book_vehicle(vehicle_id):
                 "customer.bookings"
             )
         )
-
 
     return redirect(
         url_for(
@@ -463,7 +420,6 @@ def vehicles():
     if check:
         return check
 
-
     return redirect(
         url_for(
             "customer.dashboard"
@@ -483,26 +439,21 @@ def bookings():
     if check:
         return check
 
-
     customer_id = session["user_id"]
 
-
-    bookings = (
-        CustomerModel
-        .get_customer_bookings(
-            customer_id
-        )
+    bookings = CustomerModel.get_customer_bookings(
+        customer_id
     )
-
 
     return render_template(
 
         "customer/bookings.html",
 
         bookings=bookings
-
     )
-    # =========================================================
+
+
+# =========================================================
 # CANCEL BOOKING
 # =========================================================
 
@@ -530,7 +481,9 @@ def cancel_booking(booking_id):
     )
 
     return redirect(
-        url_for("customer.bookings")
+        url_for(
+            "customer.bookings"
+        )
     )
 
 
@@ -546,17 +499,19 @@ def wishlist():
     if check:
         return check
 
-
     return render_template(
         "customer/wishlist.html"
     )
 
 
 # =========================================================
-# PROFILE
+# CUSTOMER PROFILE
 # =========================================================
 
-@customer.route("/customer/profile")
+@customer.route(
+    "/customer/profile",
+    methods=["GET", "POST"]
+)
 def profile():
 
     check = customer_required()
@@ -564,7 +519,417 @@ def profile():
     if check:
         return check
 
+    customer_id = session["user_id"]
+
+    # =====================================================
+    # UPDATE PERSONAL INFORMATION
+    # =====================================================
+
+    if request.method == "POST":
+
+        full_name = request.form.get(
+            "full_name",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip()
+
+        phone = request.form.get(
+            "phone",
+            ""
+        ).strip()
+
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
+        if not full_name:
+
+            flash(
+                "Full name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "customer.profile"
+                )
+            )
+
+        if not email:
+
+            flash(
+                "Email is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "customer.profile"
+                )
+            )
+
+        # -------------------------------------------------
+        # Update database
+        # -------------------------------------------------
+
+        success, message = (
+            CustomerModel.update_customer_profile(
+                customer_id,
+                full_name,
+                email,
+                phone
+            )
+        )
+
+        # -------------------------------------------------
+        # Update session name
+        # -------------------------------------------------
+
+        if success:
+
+            session["full_name"] = full_name
+
+        flash(
+            message,
+            "success" if success else "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    # =====================================================
+    # GET PROFILE DATA
+    # =====================================================
+
+    customer_data = CustomerModel.get_customer_profile(
+    customer_id
+    )
+
+    if not customer_data:
+        flash(
+            "Customer profile not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("customer.dashboard")
+        )
+
+    # Keep profile picture available in navbar
+    if customer_data.get("profile_picture"):
+        session["profile_picture"] = customer_data["profile_picture"]
+    # =====================================================
+    # GET BOOKINGS
+    # =====================================================
+
+    bookings = (
+        CustomerModel.get_customer_bookings(
+            customer_id
+        )
+    )
+
+    # =====================================================
+    # BOOKING STATISTICS
+    # =====================================================
+
+    total_bookings = len(bookings)
+
+    pending_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "pending"
+    ])
+
+    approved_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "approved"
+    ])
+
+    completed_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "completed"
+    ])
+
+    cancelled_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "cancelled"
+    ])
+
+    stats = {
+
+        "total_bookings":
+            total_bookings,
+
+        "pending_bookings":
+            pending_bookings,
+
+        "approved_bookings":
+            approved_bookings,
+
+        "completed_bookings":
+            completed_bookings,
+
+        "cancelled_bookings":
+            cancelled_bookings
+    }
+
+    # =====================================================
+    # RECENT BOOKINGS
+    # =====================================================
+
+    recent_bookings = bookings[:3]
+
+    # =====================================================
+    # RENDER PROFILE
+    # =====================================================
 
     return render_template(
-        "customer/profile.html"
+
+        "customer/profile.html",
+
+        customer=customer_data,
+
+        stats=stats,
+
+        recent_bookings=recent_bookings
+    )
+
+
+# =========================================================
+# CUSTOMER PROFILE PICTURE
+# =========================================================
+
+@customer.route(
+    "/customer/profile/upload-picture",
+    methods=["POST"]
+)
+def upload_profile_picture():
+
+    check = customer_required()
+
+    if check:
+        return check
+
+    customer_id = session["user_id"]
+
+    # =====================================================
+    # GET FILE
+    # =====================================================
+
+    file = request.files.get(
+        "profile_picture"
+    )
+
+    if not file or file.filename == "":
+
+        flash(
+            "Please select a profile picture.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    # =====================================================
+    # ALLOWED EXTENSIONS
+    # =====================================================
+
+    allowed_extensions = {
+        "png",
+        "jpg",
+        "jpeg",
+        "webp"
+    }
+
+    # =====================================================
+    # SECURE ORIGINAL FILENAME
+    # =====================================================
+
+    original_filename = secure_filename(
+        file.filename
+    )
+
+    if not original_filename:
+
+        flash(
+            "Invalid file name.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    # =====================================================
+    # GET EXTENSION
+    # =====================================================
+
+    if "." not in original_filename:
+
+        flash(
+            "Invalid image file.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    extension = (
+        original_filename
+        .rsplit(".", 1)[1]
+        .lower()
+    )
+
+    # =====================================================
+    # VALIDATE EXTENSION
+    # =====================================================
+
+    if extension not in allowed_extensions:
+
+        flash(
+            "Only JPG, JPEG, PNG and WEBP images are allowed.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    # =====================================================
+    # UPLOAD DIRECTORY
+    # =====================================================
+
+    upload_folder = os.path.join(
+
+        current_app.root_path,
+
+        "static",
+
+        "uploads",
+
+        "profiles"
+    )
+
+    os.makedirs(
+        upload_folder,
+        exist_ok=True
+    )
+
+    # =====================================================
+    # GENERATE UNIQUE FILENAME
+    # =====================================================
+
+    new_filename = (
+        f"customer_{customer_id}_"
+        f"{uuid.uuid4().hex}."
+        f"{extension}"
+    )
+
+    # =====================================================
+    # FILE PATH
+    # =====================================================
+
+    file_path = os.path.join(
+        upload_folder,
+        new_filename
+    )
+
+    # =====================================================
+    # SAVE FILE
+    # =====================================================
+
+    try:
+
+        file.save(
+            file_path
+        )
+
+    except Exception as e:
+
+        flash(
+            f"Unable to save profile picture: {str(e)}",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.profile"
+            )
+        )
+
+    # =====================================================
+    # SAVE FILENAME TO DATABASE
+    # =====================================================
+
+    success, message = (
+        CustomerModel
+        .update_customer_profile_picture(
+            customer_id,
+            new_filename
+        )
+    )
+
+    # =====================================================
+    # DELETE FILE IF DATABASE UPDATE FAILED
+    # =====================================================
+
+    if not success:
+
+        if os.path.exists(file_path):
+
+            os.remove(file_path)
+
+    # =====================================================
+    # FLASH MESSAGE
+    # =====================================================
+
+    flash(
+        message,
+        "success" if success else "danger"
+    )
+
+    return redirect(
+        url_for(
+            "customer.profile"
+        )
     )

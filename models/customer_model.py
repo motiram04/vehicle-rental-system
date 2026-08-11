@@ -24,8 +24,10 @@ class CustomerModel:
                 v.description,
                 v.availability_status,
                 v.approval_status,
+
                 vc.category_id,
                 vc.category_name,
+
                 u.user_id AS owner_id,
                 u.full_name AS owner_name
 
@@ -86,7 +88,10 @@ class CustomerModel:
             WHERE v.vehicle_id = %s
         """
 
-        cursor.execute(query, (vehicle_id,))
+        cursor.execute(
+            query,
+            (vehicle_id,)
+        )
 
         vehicle = cursor.fetchone()
 
@@ -133,16 +138,11 @@ class CustomerModel:
                 ON v.owner_id = u.user_id
 
             WHERE
-
                 LOWER(v.approval_status) = 'approved'
 
-                AND
+                AND LOWER(v.availability_status) = 'available'
 
-                LOWER(v.availability_status) = 'available'
-
-                AND
-
-                (
+                AND (
                     v.vehicle_name LIKE %s
                     OR v.model LIKE %s
                     OR v.vehicle_number LIKE %s
@@ -172,7 +172,7 @@ class CustomerModel:
 
 
     # =========================================================
-    # FILTER BY CATEGORY
+    # FILTER VEHICLES BY CATEGORY
     # =========================================================
 
     @staticmethod
@@ -207,16 +207,11 @@ class CustomerModel:
                 ON v.owner_id = u.user_id
 
             WHERE
-
                 LOWER(v.approval_status) = 'approved'
 
-                AND
+                AND LOWER(v.availability_status) = 'available'
 
-                LOWER(v.availability_status) = 'available'
-
-                AND
-
-                v.category_id = %s
+                AND v.category_id = %s
 
             ORDER BY v.register_at DESC
         """
@@ -234,7 +229,7 @@ class CustomerModel:
 
 
     # =========================================================
-    # FILTER BY PRICE
+    # FILTER VEHICLES BY MAXIMUM PRICE
     # =========================================================
 
     @staticmethod
@@ -269,16 +264,11 @@ class CustomerModel:
                 ON v.owner_id = u.user_id
 
             WHERE
-
                 LOWER(v.approval_status) = 'approved'
 
-                AND
+                AND LOWER(v.availability_status) = 'available'
 
-                LOWER(v.availability_status) = 'available'
-
-                AND
-
-                v.rent_per_day <= %s
+                AND v.rent_per_day <= %s
 
             ORDER BY v.rent_per_day ASC
         """
@@ -296,7 +286,7 @@ class CustomerModel:
 
 
     # =========================================================
-    # GET CATEGORIES
+    # GET VEHICLE CATEGORIES
     # =========================================================
 
     @staticmethod
@@ -335,9 +325,9 @@ class CustomerModel:
 
         cursor = mysql.connection.cursor()
 
-        # -----------------------------------------
-        # Check vehicle
-        # -----------------------------------------
+        # -----------------------------------------------------
+        # Check vehicle availability
+        # -----------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -349,7 +339,6 @@ class CustomerModel:
                 vehicle_id = %s
                 AND LOWER(approval_status) = 'approved'
                 AND LOWER(availability_status) = 'available'
-
         """, (vehicle_id,))
 
         vehicle = cursor.fetchone()
@@ -361,9 +350,9 @@ class CustomerModel:
             return False, "Vehicle is not available."
 
 
-        # -----------------------------------------
+        # -----------------------------------------------------
         # Validate dates
-        # -----------------------------------------
+        # -----------------------------------------------------
 
         try:
 
@@ -384,22 +373,31 @@ class CustomerModel:
             return False, "Invalid pickup or return date."
 
 
-        if pickup < datetime.now().replace(
+        # -----------------------------------------------------
+        # Pickup date cannot be in the past
+        # -----------------------------------------------------
+
+        today = datetime.now().replace(
             hour=0,
             minute=0,
             second=0,
             microsecond=0
-        ):
+        )
+
+        if pickup < today:
 
             cursor.close()
 
             return False, "Pickup date cannot be in the past."
 
 
+        # -----------------------------------------------------
+        # Calculate rental days
+        # -----------------------------------------------------
+
         total_days = (
             return_day - pickup
         ).days
-
 
         if total_days <= 0:
 
@@ -410,9 +408,9 @@ class CustomerModel:
             )
 
 
-        # -----------------------------------------
-        # Calculate amount
-        # -----------------------------------------
+        # -----------------------------------------------------
+        # Calculate total amount
+        # -----------------------------------------------------
 
         rent = float(
             vehicle["rent_per_day"]
@@ -423,13 +421,12 @@ class CustomerModel:
         )
 
 
-        # -----------------------------------------
+        # -----------------------------------------------------
         # Create booking
-        # -----------------------------------------
+        # -----------------------------------------------------
 
         cursor.execute("""
             INSERT INTO bookings(
-
                 vehicle_id,
                 customer_id,
                 booking_date,
@@ -438,11 +435,9 @@ class CustomerModel:
                 total_days,
                 total_amount,
                 booking_status
-
             )
 
             VALUES(
-
                 %s,
                 %s,
                 CURDATE(),
@@ -451,9 +446,7 @@ class CustomerModel:
                 %s,
                 %s,
                 'Pending'
-
             )
-
         """, (
             vehicle_id,
             customer_id,
@@ -491,7 +484,13 @@ class CustomerModel:
 
                 vc.category_name,
 
-                u.full_name AS owner_name
+                u.full_name AS owner_name,
+
+                p.payment_id,
+                p.payment_method,
+                p.transaction_id,
+                p.payment_status,
+                p.payment_date
 
             FROM bookings b
 
@@ -504,40 +503,48 @@ class CustomerModel:
             JOIN users u
                 ON v.owner_id = u.user_id
 
+            LEFT JOIN payments p
+                ON b.booking_id = p.booking_id
+
             WHERE
                 b.customer_id = %s
 
             ORDER BY
                 b.booking_id DESC
 
-        """, (customer_id,))
+        """, (
+            customer_id,
+        ))
 
         bookings = cursor.fetchall()
 
         cursor.close()
 
         return bookings
-    
         # =========================================================
     # CANCEL CUSTOMER BOOKING
     # =========================================================
 
     @staticmethod
-    def cancel_booking(booking_id, customer_id):
+    def cancel_booking(
+        booking_id,
+        customer_id
+    ):
 
         cursor = mysql.connection.cursor()
 
         try:
 
-            # =====================================================
-            # GET BOOKING
-            # =====================================================
+            # -------------------------------------------------
+            # Get booking
+            # -------------------------------------------------
 
             cursor.execute("""
                 SELECT
                     b.booking_status,
                     b.vehicle_id,
                     v.vehicle_name
+
                 FROM bookings b
 
                 INNER JOIN vehicles v
@@ -565,57 +572,70 @@ class CustomerModel:
             ).strip().lower()
 
 
-            # =====================================================
-            # ALREADY CANCELLED
-            # =====================================================
+            # -------------------------------------------------
+            # Already cancelled
+            # -------------------------------------------------
 
             if current_status == "cancelled":
 
                 cursor.close()
 
-                return False, "This booking is already cancelled."
+                return False, (
+                    "This booking is already cancelled."
+                )
 
 
-            # =====================================================
-            # COMPLETED CANNOT BE CANCELLED
-            # =====================================================
+            # -------------------------------------------------
+            # Completed cannot be cancelled
+            # -------------------------------------------------
 
             if current_status == "completed":
 
                 cursor.close()
 
-                return False, "Completed bookings cannot be cancelled."
+                return False, (
+                    "Completed bookings cannot be cancelled."
+                )
 
 
-            # =====================================================
-            # REJECTED CANNOT BE CANCELLED
-            # =====================================================
+            # -------------------------------------------------
+            # Rejected cannot be cancelled
+            # -------------------------------------------------
 
             if current_status == "rejected":
 
                 cursor.close()
 
-                return False, "Rejected bookings cannot be cancelled."
+                return False, (
+                    "Rejected bookings cannot be cancelled."
+                )
 
 
-            # =====================================================
-            # ONLY PENDING / APPROVED CAN BE CANCELLED
-            # =====================================================
+            # -------------------------------------------------
+            # Only pending / approved can be cancelled
+            # -------------------------------------------------
 
-            if current_status not in ["pending", "approved"]:
+            if current_status not in [
+                "pending",
+                "approved"
+            ]:
 
                 cursor.close()
 
-                return False, "This booking cannot be cancelled."
+                return False, (
+                    "This booking cannot be cancelled."
+                )
 
 
-            # =====================================================
-            # CANCEL BOOKING
-            # =====================================================
+            # -------------------------------------------------
+            # Cancel booking
+            # -------------------------------------------------
 
             cursor.execute("""
                 UPDATE bookings
+
                 SET booking_status = 'Cancelled'
+
                 WHERE
                     booking_id = %s
                     AND customer_id = %s
@@ -625,31 +645,34 @@ class CustomerModel:
             ))
 
 
-            # =====================================================
-            # RELEASE VEHICLE
-            # =====================================================
+            # -------------------------------------------------
+            # Release vehicle
+            # -------------------------------------------------
 
             if current_status == "approved":
 
                 cursor.execute("""
                     UPDATE vehicles
+
                     SET availability_status = 'Available'
+
                     WHERE vehicle_id = %s
                 """, (
                     booking["vehicle_id"],
                 ))
 
 
-            # =====================================================
-            # COMMIT
-            # =====================================================
+            # -------------------------------------------------
+            # Commit changes
+            # -------------------------------------------------
 
             mysql.connection.commit()
 
             cursor.close()
 
             return True, (
-                f"Booking for '{booking['vehicle_name']}' "
+                f"Booking for "
+                f"'{booking['vehicle_name']}' "
                 f"has been cancelled successfully."
             )
 
@@ -660,7 +683,254 @@ class CustomerModel:
 
             cursor.close()
 
-            print("Cancel booking error:", e)
+            print(
+                "Cancel booking error:",
+                e
+            )
 
-            return False, "Unable to cancel booking."    
-            
+            return False, (
+                "Unable to cancel booking."
+            )
+
+
+    # =========================================================
+    # GET CUSTOMER PROFILE
+    # =========================================================
+
+    @staticmethod
+    def get_customer_profile(customer_id):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                user_id,
+                full_name,
+                email,
+                phone,
+                role,
+                status,
+                profile_picture,
+                created_at
+
+            FROM users
+
+            WHERE
+                user_id = %s
+                AND role = 'customer'
+        """, (
+            customer_id,
+        ))
+
+        customer = cursor.fetchone()
+
+        cursor.close()
+
+        return customer
+
+
+    # =========================================================
+    # UPDATE CUSTOMER PROFILE PICTURE
+    # =========================================================
+
+    @staticmethod
+    def update_customer_profile_picture(
+        customer_id,
+        profile_picture
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        try:
+
+            cursor.execute("""
+                UPDATE users
+
+                SET profile_picture = %s
+
+                WHERE
+                    user_id = %s
+                    AND role = 'customer'
+            """, (
+                profile_picture,
+                customer_id
+            ))
+
+            mysql.connection.commit()
+
+            cursor.close()
+
+            return True, (
+                "Profile picture updated successfully."
+            )
+
+
+        except Exception as e:
+
+            mysql.connection.rollback()
+
+            cursor.close()
+
+            print(
+                "Customer profile picture error:",
+                e
+            )
+
+            return False, (
+                "Unable to update profile picture."
+            )
+
+
+    # =========================================================
+    # GET CUSTOMER STATISTICS
+    # =========================================================
+
+    @staticmethod
+    def get_customer_statistics(customer_id):
+
+        cursor = mysql.connection.cursor()
+
+        stats = {}
+
+
+        # -----------------------------------------------------
+        # Total bookings
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+        """, (
+            customer_id,
+        ))
+
+        stats["total_bookings"] = (
+            cursor.fetchone()["total"]
+        )
+
+
+        # -----------------------------------------------------
+        # Approved bookings
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+                AND LOWER(booking_status) = 'approved'
+        """, (
+            customer_id,
+        ))
+
+        stats["approved_bookings"] = (
+            cursor.fetchone()["total"]
+        )
+
+
+        # -----------------------------------------------------
+        # Completed bookings
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+                AND LOWER(booking_status) = 'completed'
+        """, (
+            customer_id,
+        ))
+
+        stats["completed_bookings"] = (
+            cursor.fetchone()["total"]
+        )
+
+
+        # -----------------------------------------------------
+        # Pending bookings
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+                AND LOWER(booking_status) = 'pending'
+        """, (
+            customer_id,
+        ))
+
+        stats["pending_bookings"] = (
+            cursor.fetchone()["total"]
+        )
+
+
+        # -----------------------------------------------------
+        # Cancelled bookings
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+                AND LOWER(booking_status) = 'cancelled'
+        """, (
+            customer_id,
+        ))
+
+        stats["cancelled_bookings"] = (
+            cursor.fetchone()["total"]
+        )
+
+
+        # -----------------------------------------------------
+        # Total spending
+        # -----------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COALESCE(
+                    SUM(total_amount),
+                    0
+                ) AS total
+
+            FROM bookings
+
+            WHERE
+                customer_id = %s
+
+                AND LOWER(booking_status) IN (
+                    'approved',
+                    'completed'
+                )
+        """, (
+            customer_id,
+        ))
+
+        stats["total_spent"] = (
+            cursor.fetchone()["total"] or 0
+        )
+
+
+        cursor.close()
+
+        return stats

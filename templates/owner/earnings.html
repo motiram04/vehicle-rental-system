@@ -1,0 +1,365 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}
+Earnings
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ==========================================
+         PAGE HEADER
+    =========================================== -->
+
+    <div class="mb-6">
+
+        <h1 class="text-2xl font-bold text-gray-800">
+            Earnings
+        </h1>
+
+        <p class="text-gray-500 mt-1">
+            Track your vehicle rental earnings and completed bookings.
+        </p>
+
+    </div>
+
+
+    <!-- ==========================================
+         EARNING SUMMARY CARDS
+    =========================================== -->
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+
+        <!-- TOTAL EARNINGS -->
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-gray-500">
+                        Total Earnings
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-green-600 mt-2">
+                        Rs. {{ "%.2f"|format(summary.total_earnings or 0) }}
+                    </h2>
+
+                    <p class="text-xs text-gray-400 mt-2">
+                        From completed rentals
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-full bg-green-100
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-money-bill-wave text-green-600 text-xl"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMPLETED RENTALS -->
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-gray-500">
+                        Completed Rentals
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-blue-600 mt-2">
+                        {{ summary.total_completed or 0 }}
+                    </h2>
+
+                    <p class="text-xs text-gray-400 mt-2">
+                        Successfully completed bookings
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-full bg-blue-100
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-check-circle text-blue-600 text-xl"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL REVENUE -->
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-sm text-gray-500">
+                        Total Revenue
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-purple-600 mt-2">
+                        Rs. {{ "%.2f"|format(summary.total_revenue or 0) }}
+                    </h2>
+
+                    <p class="text-xs text-gray-400 mt-2">
+                        Approved + completed bookings
+                    </p>
+
+                </div>
+
+                <div class="w-12 h-12 rounded-full bg-purple-100
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-chart-line text-purple-600 text-xl"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         EARNINGS HISTORY
+    =========================================== -->
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+        <!-- HEADER -->
+
+        <div class="px-6 py-4 border-b border-gray-100">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-bold text-gray-800">
+                        Earnings History
+                    </h2>
+
+                    <p class="text-sm text-gray-500 mt-1">
+                        Completed vehicle rental transactions
+                    </p>
+
+                </div>
+
+                <div class="text-sm text-gray-500">
+
+                    {{ earnings|length }} completed rental(s)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TABLE -->
+
+        {% if earnings %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-gray-50">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Booking
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Customer
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Vehicle
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Rental Period
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Days
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Amount
+                        </th>
+
+                        <th class="px-6 py-4 text-left font-semibold text-gray-600">
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-gray-100">
+
+                    {% for booking in earnings %}
+
+                    <tr class="hover:bg-gray-50">
+
+
+                        <!-- BOOKING ID -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="font-semibold text-gray-800">
+                                #{{ booking.booking_id }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- CUSTOMER -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="font-medium text-gray-800">
+                                {{ booking.customer_name }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- VEHICLE -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="font-medium text-gray-800">
+                                {{ booking.vehicle_name }}
+                            </div>
+
+                            <div class="text-xs text-gray-500">
+                                {{ booking.vehicle_number }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- RENTAL PERIOD -->
+
+                        <td class="px-6 py-4">
+
+                            <div class="text-gray-700">
+                                {{ booking.pickup_date }}
+                            </div>
+
+                            <div class="text-xs text-gray-500">
+                                to {{ booking.return_date }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- DAYS -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="text-gray-700">
+                                {{ booking.total_days }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- AMOUNT -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="font-bold text-green-600">
+                                Rs. {{ "%.2f"|format(booking.total_amount or 0) }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td class="px-6 py-4">
+
+                            <span class="inline-flex items-center
+                                         px-3 py-1 rounded-full
+                                         text-xs font-semibold
+                                         bg-green-100 text-green-700">
+
+                                <i class="fa-solid fa-check mr-1"></i>
+
+                                Completed
+
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+
+        <!-- EMPTY STATE -->
+
+        <div class="text-center py-16">
+
+            <div class="w-16 h-16 mx-auto mb-4
+                        rounded-full bg-gray-100
+                        flex items-center justify-center">
+
+                <i class="fa-solid fa-wallet
+                          text-gray-400 text-2xl"></i>
+
+            </div>
+
+
+            <h3 class="text-lg font-semibold text-gray-700">
+
+                No Earnings Yet
+
+            </h3>
+
+
+            <p class="text-gray-500 mt-2">
+
+                Your completed rental earnings will appear here.
+
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

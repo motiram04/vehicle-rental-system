@@ -254,8 +254,14 @@ def add_vehicle():
 #     return render_template("owner/bookings.html")
 
 
+
+
 # ==========================================
 # Earnings
+# ==========================================
+
+# ==========================================
+# Owner Earnings
 # ==========================================
 
 @owner.route("/earnings")
@@ -266,8 +272,19 @@ def earnings():
     if check:
         return check
 
-    return render_template("owner/earnings.html")
+    owner_id = session["user_id"]
 
+    # Get earnings summary
+    earnings_summary = OwnerModel.get_earnings_summary(owner_id)
+
+    # Get completed earnings history
+    earnings_history = OwnerModel.get_earnings_history(owner_id)
+
+    return render_template(
+        "owner/earnings.html",
+        summary=earnings_summary,
+        earnings=earnings_history
+    )
 
 
 # ==========================================
@@ -601,6 +618,7 @@ def upload_profile_picture():
 #     )
        
 
+
 # ==========================================
 # Settings
 # ==========================================
@@ -613,7 +631,157 @@ def settings():
     if check:
         return check
 
-    return render_template("owner/settings.html")
+    owner_id = session["user_id"]
+
+    owner_data = OwnerModel.get_owner_profile(owner_id)
+
+    if not owner_data:
+
+        flash(
+            "Owner profile not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("owner.dashboard")
+        )
+
+    return render_template(
+        "owner/settings.html",
+        owner=owner_data
+    )
+
+
+# ==========================================
+# Change Password
+# ==========================================
+
+@owner.route(
+    "/change-password",
+    methods=["POST"]
+)
+def change_password():
+
+    check = owner_required()
+
+    if check:
+        return check
+
+    owner_id = session["user_id"]
+
+    # ------------------------------------------
+    # Get form data
+    # ------------------------------------------
+
+    current_password = request.form.get(
+        "current_password",
+        ""
+    ).strip()
+
+    new_password = request.form.get(
+        "new_password",
+        ""
+    ).strip()
+
+    confirm_password = request.form.get(
+        "confirm_password",
+        ""
+    ).strip()
+
+
+    # ------------------------------------------
+    # Required fields
+    # ------------------------------------------
+
+    if not current_password or not new_password or not confirm_password:
+
+        flash(
+            "All password fields are required.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("owner.settings")
+        )
+
+
+    # ------------------------------------------
+    # Password match
+    # ------------------------------------------
+
+    if new_password != confirm_password:
+
+        flash(
+            "New passwords do not match.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("owner.settings")
+        )
+
+
+    # ------------------------------------------
+    # Password length
+    # ------------------------------------------
+
+    if len(new_password) < 6:
+
+        flash(
+            "New password must contain at least 6 characters.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("owner.settings")
+        )
+
+
+    # ------------------------------------------
+    # Prevent same password
+    # ------------------------------------------
+
+    if current_password == new_password:
+
+        flash(
+            "New password must be different from current password.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("owner.settings")
+        )
+
+
+    # ------------------------------------------
+    # Change password
+    # ------------------------------------------
+
+    success, message = OwnerModel.change_password(
+        owner_id,
+        current_password,
+        new_password
+    )
+
+
+    if success:
+
+        flash(
+            message,
+            "success"
+        )
+
+    else:
+
+        flash(
+            message,
+            "danger"
+        )
+
+
+    return redirect(
+        url_for("owner.settings")
+    )
 # =====================================================
 # Owner Booking Requests
 # =====================================================
