@@ -410,6 +410,10 @@ def view_vehicle(vehicle_id):
 # Booking Management
 # ==========================================
 
+# ==========================================
+# Booking Management
+# ==========================================
+
 @admin.route("/admin/bookings")
 def bookings():
 
@@ -418,8 +422,15 @@ def bookings():
     if check:
         return check
 
-    search = request.args.get("search", "").strip()
-    status = request.args.get("status", "").strip()
+    search = request.args.get(
+        "search",
+        ""
+    ).strip()
+
+    status = request.args.get(
+        "status",
+        ""
+    ).strip()
 
     stats = AdminModel.get_booking_statistics()
 
@@ -442,6 +453,63 @@ def bookings():
         status=status
     )
 
+
+# ==========================================
+# Approve Booking
+# ==========================================
+
+@admin.route(
+    "/admin/booking/approve/<int:booking_id>",
+    methods=["POST"]
+)
+def approve_booking(booking_id):
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    success, message = AdminModel.approve_booking(
+        booking_id
+    )
+
+    flash(
+        message,
+        "success" if success else "danger"
+    )
+
+    return redirect(
+        url_for("admin.bookings")
+    )
+
+
+# ==========================================
+# Reject Booking
+# ==========================================
+
+@admin.route(
+    "/admin/booking/reject/<int:booking_id>",
+    methods=["POST"]
+)
+def reject_booking(booking_id):
+
+    check = admin_required()
+
+    if check:
+        return check
+
+    success, message = AdminModel.reject_booking(
+        booking_id
+    )
+
+    flash(
+        message,
+        "success" if success else "danger"
+    )
+
+    return redirect(
+        url_for("admin.bookings")
+    )
 
 # --------------------------------------------
 # Payment Management

@@ -1,8 +1,20 @@
-from flask import Blueprint, flash, render_template, session, redirect, url_for, request
+from flask import (
+    Blueprint,
+    flash,
+    render_template,
+    session,
+    redirect,
+    url_for,
+    request
+)
 
 from models.customer_model import CustomerModel
 
+
+# =========================================================
 # Customer Blueprint
+# =========================================================
+
 customer = Blueprint("customer", __name__)
 
 
@@ -22,25 +34,188 @@ def customer_required():
 
 
 # =========================================================
-# Dashboard
+# Customer Dashboard
 # =========================================================
 
 @customer.route("/customer/dashboard")
 def dashboard():
+
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    vehicles = CustomerModel.get_all_vehicles()
+    customer_id = session["user_id"]
+
+
+    # -----------------------------------------------------
+    # Get Filter Values
+    # -----------------------------------------------------
+
+    search = request.args.get(
+        "search",
+        ""
+    ).strip()
+
+    category_id = request.args.get(
+        "category_id",
+        ""
+    ).strip()
+
+    max_price = request.args.get(
+        "max_price",
+        ""
+    ).strip()
+
+    availability = request.args.get(
+        "availability",
+        ""
+    ).strip()
+
+
+    # -----------------------------------------------------
+    # Get Vehicles
+    # -----------------------------------------------------
+
+    if search:
+
+        vehicles = CustomerModel.search_vehicle(
+            search
+        )
+
+    elif category_id:
+
+        try:
+
+            vehicles = CustomerModel.filter_category(
+                int(category_id)
+            )
+
+        except (ValueError, TypeError):
+
+            vehicles = CustomerModel.get_all_vehicles()
+
+    else:
+
+        vehicles = CustomerModel.get_all_vehicles()
+
+
+    # -----------------------------------------------------
+    # Maximum Price Filter
+    # -----------------------------------------------------
+
+    if max_price:
+
+        try:
+
+            max_price_value = float(
+                max_price
+            )
+
+            vehicles = [
+                vehicle
+                for vehicle in vehicles
+
+                if float(
+                    vehicle["rent_per_day"]
+                ) <= max_price_value
+            ]
+
+        except (
+            ValueError,
+            TypeError,
+            KeyError
+        ):
+
+            pass
+
+
+    # -----------------------------------------------------
+    # Availability Filter
+    # -----------------------------------------------------
+
+    if availability:
+
+        vehicles = [
+            vehicle
+            for vehicle in vehicles
+
+            if str(
+                vehicle.get(
+                    "availability_status",
+                    ""
+                )
+            ).lower()
+            ==
+            availability.lower()
+        ]
+
+
+    # -----------------------------------------------------
+    # Categories
+    # -----------------------------------------------------
 
     categories = CustomerModel.get_categories()
 
+
+    # -----------------------------------------------------
+    # Customer Bookings
+    # -----------------------------------------------------
+
+    bookings = CustomerModel.get_customer_bookings(
+        customer_id
+    )
+
+
+    # -----------------------------------------------------
+    # Dashboard Statistics
+    # -----------------------------------------------------
+
+    stats = CustomerModel.get_dashboard_stats(
+        customer_id
+    )
+
+
+    # -----------------------------------------------------
+    # Recent Bookings
+    # -----------------------------------------------------
+
+    recent_bookings = CustomerModel.get_recent_bookings(
+        customer_id,
+        5
+    )
+
+
+    # -----------------------------------------------------
+    # Render Dashboard
+    # -----------------------------------------------------
+
     return render_template(
+
         "customer/dashboard.html",
+
         vehicles=vehicles,
-        categories=categories
+
+        categories=categories,
+
+        bookings=bookings,
+
+        stats=stats,
+
+        recent_bookings=recent_bookings,
+
+        search=search,
+
+        category_id=category_id,
+
+        max_price=max_price,
+
+        availability=availability
+
     )
 
 
@@ -48,67 +223,207 @@ def dashboard():
 # Vehicle Details
 # =========================================================
 
-@customer.route("/customer/vehicle/<int:vehicle_id>")
+@customer.route(
+    "/customer/vehicle/<int:vehicle_id>"
+)
 def vehicle_details(vehicle_id):
 
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
+
     check = customer_required()
 
     if check:
         return check
 
-    vehicle = CustomerModel.get_vehicle_by_id(vehicle_id)
+
+    # -----------------------------------------------------
+    # Get Vehicle
+    # -----------------------------------------------------
+
+    vehicle = CustomerModel.get_vehicle_by_id(
+        vehicle_id
+    )
+
+
+    # -----------------------------------------------------
+    # Vehicle Not Found
+    # -----------------------------------------------------
+
+    if not vehicle:
+
+        flash(
+            "Vehicle not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.dashboard"
+            )
+        )
+
+
+    # -----------------------------------------------------
+    # Vehicle Details Page
+    # -----------------------------------------------------
 
     return render_template(
+
         "customer/vehicle_details.html",
+
         vehicle=vehicle
+
     )
 
 
 # =========================================================
-# Search Vehicle
+# Book Vehicle
 # =========================================================
 
-@customer.route("/customer/search")
-def search_vehicle():
+@customer.route(
+    "/customer/book_vehicle/<int:vehicle_id>",
+    methods=["POST"]
+)
+def book_vehicle(vehicle_id):
+
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    search = request.args.get("search", "")
 
-    vehicles = CustomerModel.search_vehicle(search)
+    # -----------------------------------------------------
+    # Customer ID
+    # -----------------------------------------------------
 
-    categories = CustomerModel.get_categories()
+    customer_id = session["user_id"]
 
-    return render_template(
-        "customer/dashboard.html",
-        vehicles=vehicles,
-        categories=categories
+
+    # -----------------------------------------------------
+    # Booking Dates
+    # -----------------------------------------------------
+
+    pickup_date = request.form.get(
+        "pickup_date"
+    )
+
+    return_date = request.form.get(
+        "return_date"
+    )
+
+
+    # -----------------------------------------------------
+    # Validate Dates
+    # -----------------------------------------------------
+
+    if not pickup_date or not return_date:
+
+        flash(
+            "Pickup date and return date are required.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "customer.vehicle_details",
+                vehicle_id=vehicle_id
+            )
+        )
+
+
+    # -----------------------------------------------------
+    # Create Booking
+    # -----------------------------------------------------
+
+    success, message = CustomerModel.book_vehicle(
+
+        vehicle_id,
+
+        customer_id,
+
+        pickup_date,
+
+        return_date
+
+    )
+
+
+    # -----------------------------------------------------
+    # Flash Message
+    # -----------------------------------------------------
+
+    flash(
+
+        message,
+
+        "success"
+        if success
+        else "danger"
+
+    )
+
+
+    # -----------------------------------------------------
+    # Redirect
+    # -----------------------------------------------------
+
+    if success:
+
+        return redirect(
+            url_for(
+                "customer.bookings"
+            )
+        )
+
+
+    return redirect(
+
+        url_for(
+
+            "customer.vehicle_details",
+
+            vehicle_id=vehicle_id
+
+        )
+
     )
 
 
 # =========================================================
-# Filter Vehicles
+# Vehicles
 # =========================================================
 
-@customer.route("/customer/filter/<int:category_id>")
-def filter_vehicle(category_id):
+@customer.route(
+    "/customer/vehicles"
+)
+def vehicles():
+
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    vehicles = CustomerModel.filter_category(category_id)
 
-    categories = CustomerModel.get_categories()
+    # -----------------------------------------------------
+    # Redirect to Dashboard
+    # -----------------------------------------------------
 
-    return render_template(
-        "customer/dashboard.html",
-        vehicles=vehicles,
-        categories=categories
+    return redirect(
+
+        url_for(
+            "customer.dashboard"
+        )
+
     )
 
 
@@ -116,106 +431,99 @@ def filter_vehicle(category_id):
 # My Bookings
 # =========================================================
 
-# @customer.route("/customer/bookings")
-# def my_bookings():
+@customer.route(
+    "/customer/bookings"
+)
+def bookings():
 
-#     check = customer_required()
-
-#     if check:
-#         return check
-
-#     return render_template("customer/bookings.html")
-@customer.route("/customer/book_vehicle/<int:vehicle_id>", methods=["POST"])
-def book_vehicle(vehicle_id):
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
+
+    # -----------------------------------------------------
+    # Customer ID
+    # -----------------------------------------------------
+
     customer_id = session["user_id"]
 
-    pickup_date = request.form.get("pickup_date")
-    return_date = request.form.get("return_date")
 
-    success, message = CustomerModel.book_vehicle(
-        vehicle_id,
-        customer_id,
-        pickup_date,
-        return_date
+    # -----------------------------------------------------
+    # Get Bookings
+    # -----------------------------------------------------
+
+    bookings = CustomerModel.get_customer_bookings(
+
+        customer_id
+
     )
 
-    flash(message, "success" if success else "danger")
 
-    if success:
-        return redirect(url_for("customer.bookings"))
+    # -----------------------------------------------------
+    # Render
+    # -----------------------------------------------------
 
-    return redirect(url_for(
-        "customer.vehicle_details",
-        vehicle_id=vehicle_id
-    ))
+    return render_template(
+
+        "customer/bookings.html",
+
+        bookings=bookings
+
+    )
+
 
 # =========================================================
 # Wishlist
 # =========================================================
 
-@customer.route("/customer/wishlist")
+@customer.route(
+    "/customer/wishlist"
+)
 def wishlist():
+
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    return render_template("customer/wishlist.html")
+
+    return render_template(
+
+        "customer/wishlist.html"
+
+    )
 
 
 # =========================================================
 # Profile
 # =========================================================
 
-@customer.route("/customer/profile")
+@customer.route(
+    "/customer/profile"
+)
 def profile():
 
-    check = customer_required()
-
-    if check:
-        return check
-
-    return render_template("customer/profile.html")
-    
-@customer.route("/customer/vehicles")
-def vehicles():
+    # -----------------------------------------------------
+    # Authentication
+    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    vehicles = CustomerModel.get_all_vehicles()
 
     return render_template(
-        "customer/dashboard.html",
-        vehicles=vehicles,
-        categories=CustomerModel.get_categories()
-    )
-    # ==========================================
-# My Bookings
-# ==========================================
 
-@customer.route("/bookings")
-def bookings():
+        "customer/profile.html"
 
-    check = customer_required()
-
-    if check:
-        return check
-
-    customer_id = session["user_id"]
-
-    bookings = CustomerModel.get_customer_bookings(customer_id)
-
-    return render_template(
-        "customer/bookings.html",
-        bookings=bookings
     )

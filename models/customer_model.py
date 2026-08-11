@@ -290,3 +290,128 @@ class CustomerModel:
         cursor.close()
 
         return bookings
+    
+
+    # ==========================================
+    # Customer Dashboard Statistics
+    # ==========================================
+
+   
+
+    @staticmethod
+    def get_dashboard_stats(customer_id):
+
+        cursor = mysql.connection.cursor()
+
+        # ------------------------------------------
+        # Total Bookings
+        # ------------------------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_bookings
+            FROM bookings
+            WHERE customer_id = %s
+        """, (customer_id,))
+
+        total_bookings = cursor.fetchone()["total_bookings"]
+
+
+        # ------------------------------------------
+        # Pending Bookings
+        # ------------------------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS pending_bookings
+            FROM bookings
+            WHERE customer_id = %s
+            AND LOWER(booking_status) = 'pending'
+        """, (customer_id,))
+
+        pending_bookings = cursor.fetchone()["pending_bookings"]
+
+
+        # ------------------------------------------
+        # Total Spent
+        # ------------------------------------------
+
+        cursor.execute("""
+            SELECT COALESCE(SUM(total_amount), 0) AS total_spent
+            FROM bookings
+            WHERE customer_id = %s
+            AND LOWER(booking_status)
+                IN ('approved', 'completed')
+        """, (customer_id,))
+
+        total_spent = cursor.fetchone()["total_spent"]
+
+
+        # ------------------------------------------
+        # Available Vehicles
+        # ------------------------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*) AS available_vehicles
+            FROM vehicles
+            WHERE approval_status = 'Approved'
+            AND availability_status = 'Available'
+        """)
+
+        available_vehicles = cursor.fetchone()["available_vehicles"]
+
+
+        cursor.close()
+
+
+        return {
+            "total_bookings": total_bookings,
+            "pending_bookings": pending_bookings,
+            "total_spent": total_spent,
+            "available_vehicles": available_vehicles
+        }
+
+
+    # ==========================================
+    # Recent Customer Bookings
+    # ==========================================
+
+    @staticmethod
+    def get_recent_bookings(customer_id, limit=5):
+
+        cursor = mysql.connection.cursor()
+
+        cursor.execute("""
+            SELECT
+
+                b.booking_id,
+                b.booking_date,
+                b.pickup_date,
+                b.return_date,
+                b.total_days,
+                b.total_amount,
+                b.booking_status,
+
+                v.vehicle_name,
+                v.image,
+
+                vc.category_name
+
+            FROM bookings b
+
+            INNER JOIN vehicles v
+                ON b.vehicle_id = v.vehicle_id
+
+            INNER JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            WHERE b.customer_id = %s
+
+            ORDER BY b.booking_id DESC
+
+            LIMIT %s
+        """, (customer_id, limit))
+
+        recent_bookings = cursor.fetchall()
+
+        cursor.close()
+
+        return recent_bookings
