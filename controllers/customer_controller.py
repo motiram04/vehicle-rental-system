@@ -12,48 +12,51 @@ from models.customer_model import CustomerModel
 
 
 # =========================================================
-# Customer Blueprint
+# CUSTOMER BLUEPRINT
 # =========================================================
 
-customer = Blueprint("customer", __name__)
+customer = Blueprint(
+    "customer",
+    __name__
+)
 
 
 # =========================================================
-# Customer Authentication Check
+# CUSTOMER AUTHENTICATION CHECK
 # =========================================================
 
 def customer_required():
 
     if "user_id" not in session:
-        return redirect(url_for("auth.login"))
+
+        return redirect(
+            url_for("auth.login")
+        )
+
 
     if session.get("role") != "customer":
+
         return "Access Denied", 403
+
 
     return None
 
 
 # =========================================================
-# Customer Dashboard
+# CUSTOMER DASHBOARD
 # =========================================================
 
 @customer.route("/customer/dashboard")
 def dashboard():
-
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-    customer_id = session["user_id"]
-
 
     # -----------------------------------------------------
-    # Get Filter Values
+    # Get filter values
     # -----------------------------------------------------
 
     search = request.args.get(
@@ -61,24 +64,21 @@ def dashboard():
         ""
     ).strip()
 
+
     category_id = request.args.get(
-        "category_id",
+        "category",
         ""
     ).strip()
+
 
     max_price = request.args.get(
         "max_price",
         ""
     ).strip()
 
-    availability = request.args.get(
-        "availability",
-        ""
-    ).strip()
-
 
     # -----------------------------------------------------
-    # Get Vehicles
+    # Get vehicles
     # -----------------------------------------------------
 
     if search:
@@ -95,6 +95,20 @@ def dashboard():
                 int(category_id)
             )
 
+        except ValueError:
+
+            vehicles = CustomerModel.get_all_vehicles()
+
+    elif max_price:
+
+        try:
+
+            price = float(max_price)
+
+            vehicles = CustomerModel.filter_price(
+                price
+            )
+
         except (ValueError, TypeError):
 
             vehicles = CustomerModel.get_all_vehicles()
@@ -105,7 +119,7 @@ def dashboard():
 
 
     # -----------------------------------------------------
-    # Maximum Price Filter
+    # Apply price filter together with search/category
     # -----------------------------------------------------
 
     if max_price:
@@ -119,7 +133,6 @@ def dashboard():
             vehicles = [
                 vehicle
                 for vehicle in vehicles
-
                 if float(
                     vehicle["rent_per_day"]
                 ) <= max_price_value
@@ -127,71 +140,171 @@ def dashboard():
 
         except (
             ValueError,
-            TypeError,
-            KeyError
+            TypeError
         ):
 
             pass
 
 
     # -----------------------------------------------------
-    # Availability Filter
-    # -----------------------------------------------------
-
-    if availability:
-
-        vehicles = [
-            vehicle
-            for vehicle in vehicles
-
-            if str(
-                vehicle.get(
-                    "availability_status",
-                    ""
-                )
-            ).lower()
-            ==
-            availability.lower()
-        ]
-
-
-    # -----------------------------------------------------
     # Categories
     # -----------------------------------------------------
 
-    categories = CustomerModel.get_categories()
-
-
-    # -----------------------------------------------------
-    # Customer Bookings
-    # -----------------------------------------------------
-
-    bookings = CustomerModel.get_customer_bookings(
-        customer_id
+    categories = (
+        CustomerModel.get_categories()
     )
 
 
     # -----------------------------------------------------
-    # Dashboard Statistics
+    # Statistics
     # -----------------------------------------------------
 
-    stats = CustomerModel.get_dashboard_stats(
-        customer_id
+    total_vehicles = len(
+        CustomerModel.get_all_vehicles()
+    )
+
+
+    available_vehicles = len(
+        CustomerModel.get_all_vehicles()
     )
 
 
     # -----------------------------------------------------
-    # Recent Bookings
+    # Customer bookings
     # -----------------------------------------------------
 
-    recent_bookings = CustomerModel.get_recent_bookings(
-        customer_id,
-        5
+    customer_id = session["user_id"]
+
+    try:
+
+        bookings = (
+            CustomerModel
+            .get_customer_bookings(
+                customer_id
+            )
+        )
+
+    except Exception:
+
+        bookings = []
+
+
+    # -----------------------------------------------------
+    # Booking statistics
+    # -----------------------------------------------------
+
+    total_bookings = len(
+        bookings
     )
 
 
+    pending_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "pending"
+    ])
+
+
+    approved_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "approved"
+    ])
+
+
+    completed_bookings = len([
+        booking
+        for booking in bookings
+        if str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower() == "completed"
+    ])
+
+
     # -----------------------------------------------------
-    # Render Dashboard
+    # Total spending
+    # -----------------------------------------------------
+
+    total_spent = 0
+
+
+    for booking in bookings:
+
+        status = str(
+            booking.get(
+                "booking_status",
+                ""
+            )
+        ).lower()
+
+
+        if status in [
+            "approved",
+            "completed"
+        ]:
+
+            try:
+
+                total_spent += float(
+                    booking.get(
+                        "total_amount",
+                        0
+                    ) or 0
+                )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+
+                pass
+
+
+    # -----------------------------------------------------
+    # Dashboard stats
+    # -----------------------------------------------------
+
+    stats = {
+
+        "total_vehicles":
+            total_vehicles,
+
+        "available_vehicles":
+            available_vehicles,
+
+        "total_bookings":
+            total_bookings,
+
+        "pending_bookings":
+            pending_bookings,
+
+        "approved_bookings":
+            approved_bookings,
+
+        "completed_bookings":
+            completed_bookings,
+
+        "total_spent":
+            total_spent
+
+    }
+
+
+    # -----------------------------------------------------
+    # Render
     # -----------------------------------------------------
 
     return render_template(
@@ -206,21 +319,17 @@ def dashboard():
 
         stats=stats,
 
-        recent_bookings=recent_bookings,
-
         search=search,
 
         category_id=category_id,
 
-        max_price=max_price,
-
-        availability=availability
+        max_price=max_price
 
     )
 
 
 # =========================================================
-# Vehicle Details
+# VEHICLE DETAILS
 # =========================================================
 
 @customer.route(
@@ -228,28 +337,19 @@ def dashboard():
 )
 def vehicle_details(vehicle_id):
 
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
-
     check = customer_required()
 
     if check:
         return check
 
 
-    # -----------------------------------------------------
-    # Get Vehicle
-    # -----------------------------------------------------
-
-    vehicle = CustomerModel.get_vehicle_by_id(
-        vehicle_id
+    vehicle = (
+        CustomerModel
+        .get_vehicle_by_id(
+            vehicle_id
+        )
     )
 
-
-    # -----------------------------------------------------
-    # Vehicle Not Found
-    # -----------------------------------------------------
 
     if not vehicle:
 
@@ -265,10 +365,6 @@ def vehicle_details(vehicle_id):
         )
 
 
-    # -----------------------------------------------------
-    # Vehicle Details Page
-    # -----------------------------------------------------
-
     return render_template(
 
         "customer/vehicle_details.html",
@@ -279,7 +375,7 @@ def vehicle_details(vehicle_id):
 
 
 # =========================================================
-# Book Vehicle
+# BOOK VEHICLE
 # =========================================================
 
 @customer.route(
@@ -288,44 +384,29 @@ def vehicle_details(vehicle_id):
 )
 def book_vehicle(vehicle_id):
 
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
-
     check = customer_required()
 
     if check:
         return check
 
 
-    # -----------------------------------------------------
-    # Customer ID
-    # -----------------------------------------------------
-
     customer_id = session["user_id"]
 
-
-    # -----------------------------------------------------
-    # Booking Dates
-    # -----------------------------------------------------
 
     pickup_date = request.form.get(
         "pickup_date"
     )
+
 
     return_date = request.form.get(
         "return_date"
     )
 
 
-    # -----------------------------------------------------
-    # Validate Dates
-    # -----------------------------------------------------
-
     if not pickup_date or not return_date:
 
         flash(
-            "Pickup date and return date are required.",
+            "Please select pickup and return dates.",
             "danger"
         )
 
@@ -337,41 +418,21 @@ def book_vehicle(vehicle_id):
         )
 
 
-    # -----------------------------------------------------
-    # Create Booking
-    # -----------------------------------------------------
-
-    success, message = CustomerModel.book_vehicle(
-
-        vehicle_id,
-
-        customer_id,
-
-        pickup_date,
-
-        return_date
-
+    success, message = (
+        CustomerModel.book_vehicle(
+            vehicle_id,
+            customer_id,
+            pickup_date,
+            return_date
+        )
     )
 
-
-    # -----------------------------------------------------
-    # Flash Message
-    # -----------------------------------------------------
 
     flash(
-
         message,
-
-        "success"
-        if success
-        else "danger"
-
+        "success" if success else "danger"
     )
 
-
-    # -----------------------------------------------------
-    # Redirect
-    # -----------------------------------------------------
 
     if success:
 
@@ -383,30 +444,19 @@ def book_vehicle(vehicle_id):
 
 
     return redirect(
-
         url_for(
-
             "customer.vehicle_details",
-
             vehicle_id=vehicle_id
-
         )
-
     )
 
 
 # =========================================================
-# Vehicles
+# VEHICLES
 # =========================================================
 
-@customer.route(
-    "/customer/vehicles"
-)
+@customer.route("/customer/vehicles")
 def vehicles():
-
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
 
     check = customer_required()
 
@@ -414,59 +464,36 @@ def vehicles():
         return check
 
 
-    # -----------------------------------------------------
-    # Redirect to Dashboard
-    # -----------------------------------------------------
-
     return redirect(
-
         url_for(
             "customer.dashboard"
         )
-
     )
 
 
 # =========================================================
-# My Bookings
+# MY BOOKINGS
 # =========================================================
 
-@customer.route(
-    "/customer/bookings"
-)
+@customer.route("/customer/bookings")
 def bookings():
-
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
 
     check = customer_required()
 
     if check:
         return check
 
-
-    # -----------------------------------------------------
-    # Customer ID
-    # -----------------------------------------------------
 
     customer_id = session["user_id"]
 
 
-    # -----------------------------------------------------
-    # Get Bookings
-    # -----------------------------------------------------
-
-    bookings = CustomerModel.get_customer_bookings(
-
-        customer_id
-
+    bookings = (
+        CustomerModel
+        .get_customer_bookings(
+            customer_id
+        )
     )
 
-
-    # -----------------------------------------------------
-    # Render
-    # -----------------------------------------------------
 
     return render_template(
 
@@ -475,46 +502,44 @@ def bookings():
         bookings=bookings
 
     )
-
-
-# =========================================================
-# Wishlist
+    # =========================================================
+# CANCEL BOOKING
 # =========================================================
 
 @customer.route(
-    "/customer/wishlist"
+    "/customer/cancel-booking/<int:booking_id>",
+    methods=["POST"]
 )
-def wishlist():
-
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
+def cancel_booking(booking_id):
 
     check = customer_required()
 
     if check:
         return check
 
+    customer_id = session["user_id"]
 
-    return render_template(
+    success, message = CustomerModel.cancel_booking(
+        booking_id,
+        customer_id
+    )
 
-        "customer/wishlist.html"
+    flash(
+        message,
+        "success" if success else "danger"
+    )
 
+    return redirect(
+        url_for("customer.bookings")
     )
 
 
 # =========================================================
-# Profile
+# WISHLIST
 # =========================================================
 
-@customer.route(
-    "/customer/profile"
-)
-def profile():
-
-    # -----------------------------------------------------
-    # Authentication
-    # -----------------------------------------------------
+@customer.route("/customer/wishlist")
+def wishlist():
 
     check = customer_required()
 
@@ -523,7 +548,23 @@ def profile():
 
 
     return render_template(
+        "customer/wishlist.html"
+    )
 
+
+# =========================================================
+# PROFILE
+# =========================================================
+
+@customer.route("/customer/profile")
+def profile():
+
+    check = customer_required()
+
+    if check:
+        return check
+
+
+    return render_template(
         "customer/profile.html"
-
     )

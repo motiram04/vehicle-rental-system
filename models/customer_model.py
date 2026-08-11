@@ -2,13 +2,11 @@ from database.db import mysql
 from datetime import datetime
 
 
-
-
 class CustomerModel:
 
-    # ==========================================
-    # Get All Approved & Available Vehicles
-    # ==========================================
+    # =========================================================
+    # GET ALL APPROVED & AVAILABLE VEHICLES
+    # =========================================================
 
     @staticmethod
     def get_all_vehicles():
@@ -20,10 +18,15 @@ class CustomerModel:
                 v.vehicle_id,
                 v.vehicle_name,
                 v.model,
+                v.vehicle_number,
                 v.rent_per_day,
                 v.image,
+                v.description,
                 v.availability_status,
+                v.approval_status,
+                vc.category_id,
                 vc.category_name,
+                u.user_id AS owner_id,
                 u.full_name AS owner_name
 
             FROM vehicles v
@@ -35,8 +38,8 @@ class CustomerModel:
                 ON v.owner_id = u.user_id
 
             WHERE
-                v.approval_status = 'Approved'
-                AND v.availability_status = 'Available'
+                LOWER(v.approval_status) = 'approved'
+                AND LOWER(v.availability_status) = 'available'
 
             ORDER BY v.register_at DESC
         """
@@ -49,9 +52,10 @@ class CustomerModel:
 
         return vehicles
 
-    # ==========================================
-    # Get Single Vehicle Details
-    # ==========================================
+
+    # =========================================================
+    # GET SINGLE VEHICLE DETAILS
+    # =========================================================
 
     @staticmethod
     def get_vehicle_by_id(vehicle_id):
@@ -63,11 +67,13 @@ class CustomerModel:
 
                 v.*,
 
+                vc.category_id,
                 vc.category_name,
 
-                u.full_name,
-                u.email,
-                u.phone
+                u.user_id AS owner_id,
+                u.full_name AS owner_name,
+                u.email AS owner_email,
+                u.phone AS owner_phone
 
             FROM vehicles v
 
@@ -88,42 +94,75 @@ class CustomerModel:
 
         return vehicle
 
-    # ==========================================
-    # Search Vehicles
-    # ==========================================
+
+    # =========================================================
+    # SEARCH VEHICLES
+    # =========================================================
 
     @staticmethod
     def search_vehicle(search):
 
         cursor = mysql.connection.cursor()
 
+        keyword = "%" + search.strip() + "%"
+
         query = """
             SELECT
+                v.vehicle_id,
+                v.vehicle_name,
+                v.model,
+                v.vehicle_number,
+                v.rent_per_day,
+                v.image,
+                v.description,
+                v.availability_status,
+                v.approval_status,
 
-                v.*,
-                vc.category_name
+                vc.category_id,
+                vc.category_name,
+
+                u.user_id AS owner_id,
+                u.full_name AS owner_name
 
             FROM vehicles v
 
             INNER JOIN vehicle_categories vc
                 ON v.category_id = vc.category_id
 
+            INNER JOIN users u
+                ON v.owner_id = u.user_id
+
             WHERE
-                v.approval_status='Approved'
 
-            AND
-            (
-                v.vehicle_name LIKE %s
+                LOWER(v.approval_status) = 'approved'
 
-                OR
+                AND
 
-                vc.category_name LIKE %s
-            )
+                LOWER(v.availability_status) = 'available'
+
+                AND
+
+                (
+                    v.vehicle_name LIKE %s
+                    OR v.model LIKE %s
+                    OR v.vehicle_number LIKE %s
+                    OR vc.category_name LIKE %s
+                    OR u.full_name LIKE %s
+                )
+
+            ORDER BY v.register_at DESC
         """
 
-        keyword = "%" + search + "%"
-
-        cursor.execute(query, (keyword, keyword))
+        cursor.execute(
+            query,
+            (
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword
+            )
+        )
 
         vehicles = cursor.fetchall()
 
@@ -131,9 +170,10 @@ class CustomerModel:
 
         return vehicles
 
-    # ==========================================
-    # Filter By Category
-    # ==========================================
+
+    # =========================================================
+    # FILTER BY CATEGORY
+    # =========================================================
 
     @staticmethod
     def filter_category(category_id):
@@ -142,25 +182,49 @@ class CustomerModel:
 
         query = """
             SELECT
+                v.vehicle_id,
+                v.vehicle_name,
+                v.model,
+                v.vehicle_number,
+                v.rent_per_day,
+                v.image,
+                v.description,
+                v.availability_status,
+                v.approval_status,
 
-                v.*,
-                vc.category_name
+                vc.category_id,
+                vc.category_name,
+
+                u.user_id AS owner_id,
+                u.full_name AS owner_name
 
             FROM vehicles v
 
             INNER JOIN vehicle_categories vc
-                ON vc.category_id = v.category_id
+                ON v.category_id = vc.category_id
+
+            INNER JOIN users u
+                ON v.owner_id = u.user_id
 
             WHERE
 
-                v.approval_status='Approved'
+                LOWER(v.approval_status) = 'approved'
 
-            AND
+                AND
 
-                vc.category_id=%s
+                LOWER(v.availability_status) = 'available'
+
+                AND
+
+                v.category_id = %s
+
+            ORDER BY v.register_at DESC
         """
 
-        cursor.execute(query, (category_id,))
+        cursor.execute(
+            query,
+            (category_id,)
+        )
 
         vehicles = cursor.fetchall()
 
@@ -168,9 +232,72 @@ class CustomerModel:
 
         return vehicles
 
-    # ==========================================
-    # Get Categories
-    # ==========================================
+
+    # =========================================================
+    # FILTER BY PRICE
+    # =========================================================
+
+    @staticmethod
+    def filter_price(max_price):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+                v.vehicle_id,
+                v.vehicle_name,
+                v.model,
+                v.vehicle_number,
+                v.rent_per_day,
+                v.image,
+                v.description,
+                v.availability_status,
+                v.approval_status,
+
+                vc.category_id,
+                vc.category_name,
+
+                u.user_id AS owner_id,
+                u.full_name AS owner_name
+
+            FROM vehicles v
+
+            INNER JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            INNER JOIN users u
+                ON v.owner_id = u.user_id
+
+            WHERE
+
+                LOWER(v.approval_status) = 'approved'
+
+                AND
+
+                LOWER(v.availability_status) = 'available'
+
+                AND
+
+                v.rent_per_day <= %s
+
+            ORDER BY v.rent_per_day ASC
+        """
+
+        cursor.execute(
+            query,
+            (max_price,)
+        )
+
+        vehicles = cursor.fetchall()
+
+        cursor.close()
+
+        return vehicles
+
+
+    # =========================================================
+    # GET CATEGORIES
+    # =========================================================
 
     @staticmethod
     def get_categories():
@@ -178,13 +305,13 @@ class CustomerModel:
         cursor = mysql.connection.cursor()
 
         cursor.execute("""
-
-            SELECT *
+            SELECT
+                category_id,
+                category_name
 
             FROM vehicle_categories
 
-            ORDER BY category_name
-
+            ORDER BY category_name ASC
         """)
 
         categories = cursor.fetchall()
@@ -192,54 +319,141 @@ class CustomerModel:
         cursor.close()
 
         return categories
-        # ==========================================
-    # Book Vehicle
-    # ==========================================
 
+
+    # =========================================================
+    # BOOK VEHICLE
+    # =========================================================
 
     @staticmethod
-    def book_vehicle(vehicle_id, customer_id, pickup_date, return_date):
+    def book_vehicle(
+        vehicle_id,
+        customer_id,
+        pickup_date,
+        return_date
+    ):
 
         cursor = mysql.connection.cursor()
 
+        # -----------------------------------------
+        # Check vehicle
+        # -----------------------------------------
+
         cursor.execute("""
-            SELECT rent_per_day
+            SELECT
+                rent_per_day
+
             FROM vehicles
-            WHERE vehicle_id=%s
-              AND approval_status='Approved'
-              AND availability_status='Available'
+
+            WHERE
+                vehicle_id = %s
+                AND LOWER(approval_status) = 'approved'
+                AND LOWER(availability_status) = 'available'
+
         """, (vehicle_id,))
 
         vehicle = cursor.fetchone()
 
         if not vehicle:
+
             cursor.close()
+
             return False, "Vehicle is not available."
 
-        rent = float(vehicle["rent_per_day"])
 
-        pickup = datetime.strptime(pickup_date, "%Y-%m-%d")
-        return_day = datetime.strptime(return_date, "%Y-%m-%d")
+        # -----------------------------------------
+        # Validate dates
+        # -----------------------------------------
 
-        total_days = (return_day - pickup).days
+        try:
+
+            pickup = datetime.strptime(
+                pickup_date,
+                "%Y-%m-%d"
+            )
+
+            return_day = datetime.strptime(
+                return_date,
+                "%Y-%m-%d"
+            )
+
+        except (TypeError, ValueError):
+
+            cursor.close()
+
+            return False, "Invalid pickup or return date."
+
+
+        if pickup < datetime.now().replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        ):
+
+            cursor.close()
+
+            return False, "Pickup date cannot be in the past."
+
+
+        total_days = (
+            return_day - pickup
+        ).days
+
 
         if total_days <= 0:
-            cursor.close()
-            return False, "Return date must be after pickup date."
 
-        total_amount = total_days * rent
+            cursor.close()
+
+            return False, (
+                "Return date must be after pickup date."
+            )
+
+
+        # -----------------------------------------
+        # Calculate amount
+        # -----------------------------------------
+
+        rent = float(
+            vehicle["rent_per_day"]
+        )
+
+        total_amount = (
+            total_days * rent
+        )
+
+
+        # -----------------------------------------
+        # Create booking
+        # -----------------------------------------
 
         cursor.execute("""
             INSERT INTO bookings(
+
                 vehicle_id,
                 customer_id,
                 booking_date,
                 pickup_date,
                 return_date,
                 total_days,
-                total_amount
+                total_amount,
+                booking_status
+
             )
-            VALUES(%s,%s,CURDATE(),%s,%s,%s,%s)
+
+            VALUES(
+
+                %s,
+                %s,
+                CURDATE(),
+                %s,
+                %s,
+                %s,
+                %s,
+                'Pending'
+
+            )
+
         """, (
             vehicle_id,
             customer_id,
@@ -249,13 +463,17 @@ class CustomerModel:
             total_amount
         ))
 
+
         mysql.connection.commit()
+
         cursor.close()
 
         return True, "Vehicle booked successfully."
-    # ==========================================
-    # Get Customer Bookings
-    # ==========================================
+
+
+    # =========================================================
+    # GET CUSTOMER BOOKINGS
+    # =========================================================
 
     @staticmethod
     def get_customer_bookings(customer_id):
@@ -270,7 +488,10 @@ class CustomerModel:
                 v.vehicle_name,
                 v.image,
                 v.vehicle_number,
-                vc.category_name
+
+                vc.category_name,
+
+                u.full_name AS owner_name
 
             FROM bookings b
 
@@ -280,9 +501,15 @@ class CustomerModel:
             JOIN vehicle_categories vc
                 ON v.category_id = vc.category_id
 
-            WHERE b.customer_id = %s
+            JOIN users u
+                ON v.owner_id = u.user_id
 
-            ORDER BY b.booking_id DESC
+            WHERE
+                b.customer_id = %s
+
+            ORDER BY
+                b.booking_id DESC
+
         """, (customer_id,))
 
         bookings = cursor.fetchall()
@@ -291,127 +518,147 @@ class CustomerModel:
 
         return bookings
     
-
-    # ==========================================
-    # Customer Dashboard Statistics
-    # ==========================================
-
-   
+        # =========================================================
+    # CANCEL CUSTOMER BOOKING
+    # =========================================================
 
     @staticmethod
-    def get_dashboard_stats(customer_id):
+    def cancel_booking(booking_id, customer_id):
 
         cursor = mysql.connection.cursor()
 
-        # ------------------------------------------
-        # Total Bookings
-        # ------------------------------------------
+        try:
 
-        cursor.execute("""
-            SELECT COUNT(*) AS total_bookings
-            FROM bookings
-            WHERE customer_id = %s
-        """, (customer_id,))
+            # -------------------------------------------------
+            # Get booking and verify ownership
+            # -------------------------------------------------
 
-        total_bookings = cursor.fetchone()["total_bookings"]
+            cursor.execute("""
+                SELECT
+                    b.booking_status,
+                    b.vehicle_id,
+                    v.vehicle_name
+                FROM bookings b
 
+                JOIN vehicles v
+                    ON b.vehicle_id = v.vehicle_id
 
-        # ------------------------------------------
-        # Pending Bookings
-        # ------------------------------------------
+                WHERE
+                    b.booking_id = %s
+                    AND b.customer_id = %s
+            """, (
+                booking_id,
+                customer_id
+            ))
 
-        cursor.execute("""
-            SELECT COUNT(*) AS pending_bookings
-            FROM bookings
-            WHERE customer_id = %s
-            AND LOWER(booking_status) = 'pending'
-        """, (customer_id,))
+            booking = cursor.fetchone()
 
-        pending_bookings = cursor.fetchone()["pending_bookings"]
+            if not booking:
 
+                cursor.close()
 
-        # ------------------------------------------
-        # Total Spent
-        # ------------------------------------------
+                return False, "Booking not found."
 
-        cursor.execute("""
-            SELECT COALESCE(SUM(total_amount), 0) AS total_spent
-            FROM bookings
-            WHERE customer_id = %s
-            AND LOWER(booking_status)
-                IN ('approved', 'completed')
-        """, (customer_id,))
+            current_status = str(
+                booking["booking_status"]
+            ).lower()
 
-        total_spent = cursor.fetchone()["total_spent"]
+            # -------------------------------------------------
+            # Already cancelled
+            # -------------------------------------------------
 
+            if current_status == "cancelled":
 
-        # ------------------------------------------
-        # Available Vehicles
-        # ------------------------------------------
+                cursor.close()
 
-        cursor.execute("""
-            SELECT COUNT(*) AS available_vehicles
-            FROM vehicles
-            WHERE approval_status = 'Approved'
-            AND availability_status = 'Available'
-        """)
+                return False, "This booking is already cancelled."
 
-        available_vehicles = cursor.fetchone()["available_vehicles"]
+            # -------------------------------------------------
+            # Completed booking cannot be cancelled
+            # -------------------------------------------------
 
+            if current_status == "completed":
 
-        cursor.close()
+                cursor.close()
 
+                return False, "Completed bookings cannot be cancelled."
 
-        return {
-            "total_bookings": total_bookings,
-            "pending_bookings": pending_bookings,
-            "total_spent": total_spent,
-            "available_vehicles": available_vehicles
-        }
+            # -------------------------------------------------
+            # Rejected booking cannot be cancelled
+            # -------------------------------------------------
 
+            if current_status == "rejected":
 
-    # ==========================================
-    # Recent Customer Bookings
-    # ==========================================
+                cursor.close()
 
-    @staticmethod
-    def get_recent_bookings(customer_id, limit=5):
+                return False, "Rejected bookings cannot be cancelled."
 
-        cursor = mysql.connection.cursor()
+            # -------------------------------------------------
+            # Only Pending / Approved can be cancelled
+            # -------------------------------------------------
 
-        cursor.execute("""
-            SELECT
+            if current_status not in (
+                "pending",
+                "approved"
+            ):
 
-                b.booking_id,
-                b.booking_date,
-                b.pickup_date,
-                b.return_date,
-                b.total_days,
-                b.total_amount,
-                b.booking_status,
+                cursor.close()
 
-                v.vehicle_name,
-                v.image,
+                return False, "This booking cannot be cancelled."
 
-                vc.category_name
+            # -------------------------------------------------
+            # Cancel booking
+            # -------------------------------------------------
 
-            FROM bookings b
+            cursor.execute("""
+                UPDATE bookings
 
-            INNER JOIN vehicles v
-                ON b.vehicle_id = v.vehicle_id
+                SET booking_status = 'Cancelled'
 
-            INNER JOIN vehicle_categories vc
-                ON v.category_id = vc.category_id
+                WHERE
+                    booking_id = %s
+                    AND customer_id = %s
+            """, (
+                booking_id,
+                customer_id
+            ))
 
-            WHERE b.customer_id = %s
+            # -------------------------------------------------
+            # If booking was Approved,
+            # make vehicle available again
+            # -------------------------------------------------
 
-            ORDER BY b.booking_id DESC
+            if current_status == "approved":
 
-            LIMIT %s
-        """, (customer_id, limit))
+                cursor.execute("""
+                    UPDATE vehicles
 
-        recent_bookings = cursor.fetchall()
+                    SET availability_status = 'Available'
 
-        cursor.close()
+                    WHERE vehicle_id = %s
+                """, (
+                    booking["vehicle_id"],
+                ))
 
-        return recent_bookings
+            # -------------------------------------------------
+            # Commit
+            # -------------------------------------------------
+
+            mysql.connection.commit()
+
+            cursor.close()
+
+            return True, (
+                f"Booking for '{booking['vehicle_name']}' "
+                f"has been cancelled successfully."
+            )
+
+        except Exception as e:
+
+            mysql.connection.rollback()
+
+            cursor.close()
+
+            print("Cancel booking error:", e)
+
+            return False, "Unable to cancel booking."

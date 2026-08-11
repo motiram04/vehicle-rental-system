@@ -19,7 +19,7 @@
 
     <div class="mt-4 md:mt-0">
         <a href="{{ url_for('admin.users') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow transition">
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow transition">
             Manage Users →
         </a>
     </div>
@@ -62,7 +62,7 @@
         </div>
 
         <a href="{{ url_for('admin.users') }}"
-           class="inline-block text-blue-600 text-sm font-medium mt-5 hover:underline">
+            class="inline-block text-blue-600 text-sm font-medium mt-5 hover:underline">
             View Users →
         </a>
 
@@ -99,7 +99,7 @@
         </div>
 
         <a href="{{ url_for('admin.vehicles') }}"
-           class="inline-block text-green-600 text-sm font-medium mt-5 hover:underline">
+            class="inline-block text-green-600 text-sm font-medium mt-5 hover:underline">
             Manage Vehicles →
         </a>
 
@@ -134,7 +134,7 @@
         </div>
 
         <a href="{{ url_for('admin.bookings') }}"
-           class="inline-block text-yellow-600 text-sm font-medium mt-5 hover:underline">
+            class="inline-block text-yellow-600 text-sm font-medium mt-5 hover:underline">
             View Bookings →
         </a>
 
@@ -169,7 +169,7 @@
         </div>
 
         <a href="{{ url_for('admin.payments') }}"
-           class="inline-block text-purple-600 text-sm font-medium mt-5 hover:underline">
+            class="inline-block text-purple-600 text-sm font-medium mt-5 hover:underline">
             View Payments →
         </a>
 
@@ -224,8 +224,7 @@
 
             </div>
 
-            <a href="{{ url_for('admin.pending_vehicles') }}"
-               class="inline-block mt-4 bg-orange-500 hover:bg-orange-600
+            <a href="{{ url_for('admin.pending_vehicles') }}" class="inline-block mt-4 bg-orange-500 hover:bg-orange-600
                       text-white px-4 py-2 rounded-lg text-sm transition">
                 Review Vehicles →
             </a>
@@ -257,8 +256,7 @@
 
             </div>
 
-            <a href="{{ url_for('admin.bookings') }}"
-               class="inline-block mt-4 bg-yellow-500 hover:bg-yellow-600
+            <a href="{{ url_for('admin.bookings') }}" class="inline-block mt-4 bg-yellow-500 hover:bg-yellow-600
                       text-white px-4 py-2 rounded-lg text-sm transition">
                 View Bookings →
             </a>
@@ -286,8 +284,7 @@
             </p>
         </div>
 
-        <a href="{{ url_for('admin.bookings') }}"
-           class="text-blue-600 hover:underline text-sm font-medium">
+        <a href="{{ url_for('admin.bookings') }}" class="text-blue-600 hover:underline text-sm font-medium">
             View All →
         </a>
 
@@ -406,8 +403,7 @@
                 </p>
             </div>
 
-            <a href="{{ url_for('admin.users') }}"
-               class="text-blue-600 hover:underline text-sm font-medium">
+            <a href="{{ url_for('admin.users') }}" class="text-blue-600 hover:underline text-sm font-medium">
                 View All →
             </a>
 
@@ -478,8 +474,7 @@
 
             </div>
 
-            <a href="{{ url_for('admin.vehicles') }}"
-               class="text-blue-600 hover:underline text-sm font-medium">
+            <a href="{{ url_for('admin.vehicles') }}" class="text-blue-600 hover:underline text-sm font-medium">
                 View All →
             </a>
 
@@ -576,16 +571,16 @@
 
     window.bookingStats = {
         approved: Number({{ booking_stats | tojson | safe }}.approved or 0),
-        pending: Number({{ booking_stats | tojson | safe }}.pending or 0),
+    pending: Number({{ booking_stats | tojson | safe }}.pending or 0),
         rejected: Number({{ booking_stats | tojson | safe }}.rejected or 0)
     };
 
 
     window.vehicleStats = {
         available: Number({{ vehicle_stats | tojson | safe }}.available or 0),
-        booked: Number({{ vehicle_stats | tojson | safe }}.booked or 0),
+    booked: Number({{ vehicle_stats | tojson | safe }}.booked or 0),
         pending: Number({{ vehicle_stats | tojson | safe }}.pending or 0),
-        approved: Number({{ vehicle_stats | tojson | safe }}.approved or 0)
+            approved: Number({{ vehicle_stats | tojson | safe }}.approved or 0)
     };
 
 </script>
