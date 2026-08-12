@@ -680,3 +680,351 @@ class OwnerModel:
         cursor.close()
 
         return True, "Password changed successfully."
+    
+    
+    # ==========================================================
+# GET SINGLE OWNER VEHICLE
+# ==========================================================
+
+    @staticmethod
+    def get_vehicle_by_id(owner_id, vehicle_id):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+                v.*,
+                vc.category_name
+
+            FROM vehicles v
+
+            LEFT JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            WHERE
+                v.vehicle_id = %s
+                AND v.owner_id = %s
+
+            LIMIT 1
+        """
+
+        cursor.execute(
+            query,
+            (
+                vehicle_id,
+                owner_id
+            )
+        )
+
+        vehicle = cursor.fetchone()
+
+        cursor.close()
+
+        return vehicle
+
+
+    # ==========================================================
+    # SEARCH OWNER VEHICLES
+    # ==========================================================
+
+    @staticmethod
+    def search_owner_vehicles(owner_id, search=""):
+
+        cursor = mysql.connection.cursor()
+
+        query = """
+            SELECT
+                v.*,
+                vc.category_name
+
+            FROM vehicles v
+
+            LEFT JOIN vehicle_categories vc
+                ON v.category_id = vc.category_id
+
+            WHERE
+                v.owner_id = %s
+        """
+
+        values = [owner_id]
+
+        if search:
+
+            query += """
+                AND (
+                    v.vehicle_name LIKE %s
+                    OR v.model LIKE %s
+                    OR v.vehicle_number LIKE %s
+                    OR vc.category_name LIKE %s
+                )
+            """
+
+            keyword = f"%{search}%"
+
+            values.extend([
+                keyword,
+                keyword,
+                keyword,
+                keyword
+            ])
+
+        query += """
+            ORDER BY v.vehicle_id DESC
+        """
+
+        cursor.execute(
+            query,
+            values
+        )
+
+        vehicles = cursor.fetchall()
+
+        cursor.close()
+
+        return vehicles
+
+
+    # ==========================================================
+    # UPDATE VEHICLE
+    # ==========================================================
+
+    @staticmethod
+    def update_vehicle(
+        owner_id,
+        vehicle_id,
+        category_id,
+        vehicle_name,
+        model,
+        vehicle_number,
+        rent_per_day,
+        description,
+        availability_status,
+        image=None
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        # ------------------------------------------------------
+        # Verify ownership
+        # ------------------------------------------------------
+
+        cursor.execute("""
+            SELECT vehicle_id
+            FROM vehicles
+
+            WHERE
+                vehicle_id = %s
+                AND owner_id = %s
+        """, (
+            vehicle_id,
+            owner_id
+        ))
+
+        vehicle = cursor.fetchone()
+
+        if not vehicle:
+
+            cursor.close()
+
+            return False, "Vehicle not found."
+
+
+        # ------------------------------------------------------
+        # Update with / without image
+        # ------------------------------------------------------
+
+        if image:
+
+            query = """
+                UPDATE vehicles
+
+                SET
+                    category_id = %s,
+                    vehicle_name = %s,
+                    model = %s,
+                    vehicle_number = %s,
+                    rent_per_day = %s,
+                    description = %s,
+                    availability_status = %s,
+                    image = %s
+
+                WHERE
+                    vehicle_id = %s
+                    AND owner_id = %s
+            """
+
+            values = (
+                category_id,
+                vehicle_name,
+                model,
+                vehicle_number,
+                rent_per_day,
+                description,
+                availability_status,
+                image,
+                vehicle_id,
+                owner_id
+            )
+
+        else:
+
+            query = """
+                UPDATE vehicles
+
+                SET
+                    category_id = %s,
+                    vehicle_name = %s,
+                    model = %s,
+                    vehicle_number = %s,
+                    rent_per_day = %s,
+                    description = %s,
+                    availability_status = %s
+
+                WHERE
+                    vehicle_id = %s
+                    AND owner_id = %s
+            """
+
+            values = (
+                category_id,
+                vehicle_name,
+                model,
+                vehicle_number,
+                rent_per_day,
+                description,
+                availability_status,
+                vehicle_id,
+                owner_id
+            )
+
+        cursor.execute(
+            query,
+            values
+        )
+
+        mysql.connection.commit()
+
+        cursor.close()
+
+        return True, "Vehicle updated successfully."
+
+
+    # ==========================================================
+    # DELETE VEHICLE
+    # ==========================================================
+
+    @staticmethod
+    def delete_vehicle(
+        owner_id,
+        vehicle_id
+    ):
+
+        cursor = mysql.connection.cursor()
+
+        try:
+
+            # --------------------------------------------------
+            # Get vehicle
+            # --------------------------------------------------
+
+            cursor.execute("""
+                SELECT
+                    vehicle_id,
+                    vehicle_name,
+                    availability_status,
+                    image
+
+                FROM vehicles
+
+                WHERE
+                    vehicle_id = %s
+                    AND owner_id = %s
+
+                LIMIT 1
+            """, (
+                vehicle_id,
+                owner_id
+            ))
+
+            vehicle = cursor.fetchone()
+
+            if not vehicle:
+
+                cursor.close()
+
+                return False, "Vehicle not found."
+
+
+            # --------------------------------------------------
+            # Prevent deletion of actively booked vehicle
+            # --------------------------------------------------
+
+            cursor.execute("""
+                SELECT COUNT(*) AS total
+
+                FROM bookings
+
+                WHERE
+                    vehicle_id = %s
+
+                    AND LOWER(TRIM(booking_status))
+                    IN (
+                        'pending',
+                        'approved'
+                    )
+            """, (
+                vehicle_id,
+            ))
+
+            active_booking = cursor.fetchone()["total"]
+
+
+            if active_booking > 0:
+
+                cursor.close()
+
+                return False, (
+                    "This vehicle cannot be deleted because "
+                    "it has an active booking."
+                )
+
+
+            # --------------------------------------------------
+            # Delete vehicle
+            # --------------------------------------------------
+
+            cursor.execute("""
+                DELETE FROM vehicles
+
+                WHERE
+                    vehicle_id = %s
+                    AND owner_id = %s
+            """, (
+                vehicle_id,
+                owner_id
+            ))
+
+            mysql.connection.commit()
+
+            cursor.close()
+
+            return True, (
+                f"Vehicle '{vehicle['vehicle_name']}' "
+                "deleted successfully."
+            )
+
+
+        except Exception as e:
+
+            mysql.connection.rollback()
+
+            cursor.close()
+
+            print(
+                "Delete vehicle error:",
+                e
+            )
+
+            return False, (
+                "Unable to delete vehicle."
+            )

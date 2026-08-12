@@ -1,0 +1,820 @@
+{% extends "owner/layout/base.html" %}
+
+{% block title %}
+Edit Vehicle
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="flex flex-col md:flex-row
+                md:items-center
+                md:justify-between
+                gap-4 mb-8">
+
+        <div>
+
+            <p class="text-sm font-semibold
+                      text-blue-600 uppercase tracking-wide">
+
+                Vehicle Management
+
+            </p>
+
+            <h1 class="text-3xl font-bold text-gray-800">
+
+                Edit Vehicle
+
+            </h1>
+
+            <p class="text-gray-500 mt-1">
+
+                Update your vehicle information.
+
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('owner.vehicles') }}"
+            class="
+                inline-flex items-center gap-2
+                bg-gray-900 hover:bg-black
+                text-white
+                px-5 py-3
+                rounded-xl
+                font-semibold
+                transition
+            "
+        >
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back to Vehicles
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         FLASH MESSAGES
+    ====================================================== -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="space-y-3 mb-6">
+
+                {% for category, message in messages %}
+
+                    <div class="
+                        p-4 rounded-xl border
+                        {% if category == 'success' %}
+                            bg-green-50
+                            border-green-200
+                            text-green-700
+                        {% elif category == 'danger' %}
+                            bg-red-50
+                            border-red-200
+                            text-red-700
+                        {% elif category == 'warning' %}
+                            bg-yellow-50
+                            border-yellow-200
+                            text-yellow-700
+                        {% else %}
+                            bg-blue-50
+                            border-blue-200
+                            text-blue-700
+                        {% endif %}
+                    ">
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- =====================================================
+         EDIT FORM
+    ====================================================== -->
+
+    <div class="
+        bg-white
+        rounded-2xl
+        shadow-sm
+        border border-gray-100
+        overflow-hidden
+    ">
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for(
+                'owner.edit_vehicle',
+                vehicle_id=vehicle.vehicle_id
+            ) }}"
+        >
+
+            <div class="p-8">
+
+
+                <!-- =================================================
+                     CURRENT IMAGE
+                ================================================== -->
+
+                <div class="mb-8">
+
+                    <label class="
+                        block
+                        text-sm
+                        font-semibold
+                        text-gray-700
+                        mb-3
+                    ">
+
+                        Current Vehicle Image
+
+                    </label>
+
+                    <div class="flex flex-col sm:flex-row
+                                items-start gap-5">
+
+                        {% if vehicle.image %}
+
+                            <img
+                                src="{{ url_for(
+                                    'static',
+                                    filename='uploads/vehicles/' + vehicle.image
+                                ) }}"
+                                alt="{{ vehicle.vehicle_name }}"
+                                class="
+                                    w-48
+                                    h-32
+                                    object-cover
+                                    rounded-xl
+                                    border
+                                    border-gray-200
+                                "
+                            >
+
+                        {% else %}
+
+                            <div class="
+                                w-48
+                                h-32
+                                rounded-xl
+                                bg-gray-100
+                                flex items-center
+                                justify-center
+                                text-gray-400
+                            ">
+
+                                <i class="
+                                    fa-solid fa-car
+                                    text-4xl
+                                "></i>
+
+                            </div>
+
+                        {% endif %}
+
+                        <div class="text-sm text-gray-500">
+
+                            <p class="font-semibold text-gray-700">
+
+                                Replace Image
+
+                            </p>
+
+                            <p class="mt-1">
+
+                                JPG, JPEG, PNG or WEBP
+
+                            </p>
+
+                            <input
+                                type="file"
+                                name="image"
+                                accept=".jpg,.jpeg,.png,.webp"
+                                class="
+                                    block
+                                    w-full
+                                    mt-4
+                                    text-sm
+                                    text-gray-600
+                                    file:mr-4
+                                    file:py-2
+                                    file:px-4
+                                    file:rounded-lg
+                                    file:border-0
+                                    file:bg-blue-50
+                                    file:text-blue-700
+                                    hover:file:bg-blue-100
+                                "
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     BASIC INFORMATION
+                ================================================== -->
+
+                <div class="
+                    grid
+                    grid-cols-1
+                    md:grid-cols-2
+                    gap-6
+                ">
+
+
+                    <!-- Vehicle Name -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Vehicle Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="vehicle_name"
+                            value="{{ vehicle.vehicle_name }}"
+                            required
+                            class="
+                                w-full
+                                border
+                                border-gray-300
+                                rounded-xl
+                                px-4
+                                py-3
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
+                                outline-none
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- Category -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Vehicle Category
+
+                        </label>
+
+                        <select
+                            name="category_id"
+                            required
+                            class="
+                                w-full
+                                border
+                                border-gray-300
+                                rounded-xl
+                                px-4
+                                py-3
+                                bg-white
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
+                                outline-none
+                            "
+                        >
+
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            {% for category in categories %}
+
+                                <option
+                                    value="{{ category.category_id }}"
+                                    {% if category.category_id|string ==
+                                          vehicle.category_id|string %}
+                                        selected
+                                    {% endif %}
+                                >
+
+                                    {{ category.category_name }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Model -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Model
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="model"
+                            value="{{ vehicle.model or '' }}"
+                            class="
+                                w-full
+                                border
+                                border-gray-300
+                                rounded-xl
+                                px-4
+                                py-3
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
+                                outline-none
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- Vehicle Number -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Vehicle Number
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="vehicle_number"
+                            value="{{ vehicle.vehicle_number or '' }}"
+                            required
+                            class="
+                                w-full
+                                border
+                                border-gray-300
+                                rounded-xl
+                                px-4
+                                py-3
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
+                                outline-none
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- Rent -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Rent Per Day
+
+                        </label>
+
+                        <div class="relative">
+
+                            <span class="
+                                absolute
+                                left-4
+                                top-1/2
+                                -translate-y-1/2
+                                text-gray-500
+                                font-semibold
+                            ">
+
+                                Rs.
+
+                            </span>
+
+                            <input
+                                type="number"
+                                name="rent_per_day"
+                                value="{{ vehicle.rent_per_day }}"
+                                min="1"
+                                step="0.01"
+                                required
+                                class="
+                                    w-full
+                                    border
+                                    border-gray-300
+                                    rounded-xl
+                                    pl-12
+                                    pr-4
+                                    py-3
+                                    focus:ring-2
+                                    focus:ring-blue-500
+                                    focus:border-blue-500
+                                    outline-none
+                                "
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Availability -->
+
+                    <div>
+
+                        <label class="
+                            block
+                            text-sm
+                            font-semibold
+                            text-gray-700
+                            mb-2
+                        ">
+
+                            Availability
+
+                        </label>
+
+                        {% set current_status =
+                            (vehicle.availability_status or '')
+                            |string
+                            |lower
+                            |trim
+                        %}
+
+                        <select
+                            name="availability_status"
+                            class="
+                                w-full
+                                border
+                                border-gray-300
+                                rounded-xl
+                                px-4
+                                py-3
+                                bg-white
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
+                                outline-none
+                            "
+                            {% if current_status == "booked" %}
+                                disabled
+                            {% endif %}
+                        >
+
+                            <option
+                                value="Available"
+                                {% if current_status == "available" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Available
+
+                            </option>
+
+                            <option
+                                value="Maintenance"
+                                {% if current_status == "maintenance" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Maintenance
+
+                            </option>
+
+                            {% if current_status == "booked" %}
+
+                                <option
+                                    value="Booked"
+                                    selected
+                                >
+
+                                    Booked
+
+                                </option>
+
+                            {% endif %}
+
+                        </select>
+
+                        {% if current_status == "booked" %}
+
+                            <!-- Hidden field because disabled fields
+                                 are not submitted -->
+
+                            <input
+                                type="hidden"
+                                name="availability_status"
+                                value="Booked"
+                            >
+
+                            <p class="
+                                text-xs
+                                text-orange-600
+                                mt-2
+                            ">
+
+                                This vehicle is currently booked,
+                                so its availability cannot be changed.
+
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     DESCRIPTION
+                ================================================== -->
+
+                <div class="mt-6">
+
+                    <label class="
+                        block
+                        text-sm
+                        font-semibold
+                        text-gray-700
+                        mb-2
+                    ">
+
+                        Description
+
+                    </label>
+
+                    <textarea
+                        name="description"
+                        rows="5"
+                        class="
+                            w-full
+                            border
+                            border-gray-300
+                            rounded-xl
+                            px-4
+                            py-3
+                            focus:ring-2
+                            focus:ring-blue-500
+                            focus:border-blue-500
+                            outline-none
+                            resize-y
+                        "
+                    >{{ vehicle.description or '' }}</textarea>
+
+                </div>
+
+
+                <!-- =================================================
+                     APPROVAL INFORMATION
+                ================================================== -->
+
+                <div class="
+                    mt-6
+                    bg-gray-50
+                    rounded-xl
+                    p-5
+                ">
+
+                    <div class="
+                        flex
+                        flex-col
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                        gap-3
+                    ">
+
+                        <div>
+
+                            <p class="
+                                text-sm
+                                font-semibold
+                                text-gray-700
+                            ">
+
+                                Admin Approval Status
+
+                            </p>
+
+                            <p class="
+                                text-xs
+                                text-gray-500
+                                mt-1
+                            ">
+
+                                Approval status can only be changed
+                                by an administrator.
+
+                            </p>
+
+                        </div>
+
+
+                        {% set approval =
+                            (vehicle.approval_status or '')
+                            |string
+                            |lower
+                            |trim
+                        %}
+
+
+                        {% if approval == "approved" %}
+
+                            <span class="
+                                inline-flex
+                                items-center gap-2
+                                bg-green-100
+                                text-green-700
+                                px-4 py-2
+                                rounded-full
+                                text-sm
+                                font-semibold
+                            ">
+
+                                <i class="fa-solid fa-check"></i>
+
+                                Approved
+
+                            </span>
+
+                        {% elif approval == "pending" %}
+
+                            <span class="
+                                inline-flex
+                                items-center gap-2
+                                bg-yellow-100
+                                text-yellow-700
+                                px-4 py-2
+                                rounded-full
+                                text-sm
+                                font-semibold
+                            ">
+
+                                <i class="fa-solid fa-clock"></i>
+
+                                Pending
+
+                            </span>
+
+                        {% elif approval == "rejected" %}
+
+                            <span class="
+                                inline-flex
+                                items-center gap-2
+                                bg-red-100
+                                text-red-700
+                                px-4 py-2
+                                rounded-full
+                                text-sm
+                                font-semibold
+                            ">
+
+                                <i class="fa-solid fa-xmark"></i>
+
+                                Rejected
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     BUTTONS
+                ================================================== -->
+
+                <div class="
+                    flex
+                    flex-col-reverse
+                    sm:flex-row
+                    sm:justify-end
+                    gap-3
+                    mt-8
+                    pt-6
+                    border-t
+                ">
+
+                    <a
+                        href="{{ url_for('owner.vehicles') }}"
+                        class="
+                            inline-flex
+                            items-center
+                            justify-center
+                            gap-2
+                            bg-gray-100
+                            hover:bg-gray-200
+                            text-gray-700
+                            px-6
+                            py-3
+                            rounded-xl
+                            font-semibold
+                            transition
+                        "
+                    >
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                        Cancel
+
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="
+                            inline-flex
+                            items-center
+                            justify-center
+                            gap-2
+                            bg-blue-600
+                            hover:bg-blue-700
+                            text-white
+                            px-6
+                            py-3
+                            rounded-xl
+                            font-semibold
+                            transition
+                            shadow
+                        "
+                    >
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
